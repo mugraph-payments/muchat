@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2.161"
+gpui = { git = "https://github.com/zed-industries/zed" }
