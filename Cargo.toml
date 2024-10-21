@@ -7,3 +7,4 @@ license = "MIT"
 [dependencies]
 libc = "0.2.161"
 gpui = { git = "https://github.com/zed-industries/zed" }
+thiserror = "1.0.64"
