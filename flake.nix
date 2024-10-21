@@ -46,33 +46,48 @@
           cargo = rust;
         };
 
-        simplex-ci = writeShellApplication {
-          name = "simplex-ci";
-          runtimeInputs = with pkgs; [
-            rust
-            cargo-watch
-            cargo-nextest
-          ];
-          text = ''
-            cargo watch -s 'cargo fmt && cargo clippy --all && cargo nextest run --release'
-          '';
-        };
-
-        packages = {
-          default = rustPlatform.buildRustPackage {
-            name = "simplex";
+        packages = rec {
+          muchat = rustPlatform.buildRustPackage {
+            name = "muchat";
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             doCheck = false;
           };
+          default = muchat;
 
-          simplex-watch = (import process-compose.lib { inherit pkgs; }).makeProcessCompose {
+          muchat-watch = (import process-compose.lib { inherit pkgs; }).makeProcessCompose {
             modules = [
               {
-                settings.processes.simplex-mint.command = "${simplex-ci}/bin/simplex-ci";
+                settings.processes.muchat-mint.command = "${muchat-ci}/bin/muchat-ci";
               }
             ];
           };
+
+          muchat-test = writeShellApplication {
+            name = "muchat-test";
+            runtimeInputs = with pkgs; [
+              rust
+              cargo-nextest
+            ];
+            text = ''
+              exec cargo nextest run
+            '';
+          };
+
+          muchat-ci = writeShellApplication {
+            name = "muchat-ci";
+            runtimeInputs = with pkgs; [
+              cargo-nextest
+              cargo-watch
+
+              muchat-test
+              rust
+            ];
+            text = ''
+              exec cargo watch -s 'cargo fmt && cargo clippy --all && muchat-test'
+            '';
+          };
+
         };
 
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
@@ -89,8 +104,8 @@
           };
         };
 
+        # Fixes a problem where building on Mac would fail for development.
         shell-patch = optionalString isDarwin ''
-          # Prioritize system clang
           export PATH=/usr/bin:$PATH
         '';
       in
@@ -107,15 +122,15 @@
             ${shell-patch}
           '';
 
-          name = "simplex";
+          name = "muchat";
 
           buildInputs =
             with pkgs;
             [
-              packages.simplex-watch
+              packages.muchat-watch
+              packages.muchat-test
 
               rust
-              rustfmt
               cargo-nextest
               cargo-watch
             ]

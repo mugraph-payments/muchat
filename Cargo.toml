@@ -1,7 +1,8 @@
 [package]
-name = "simplex-chat-sys"
+name = "muchat"
 version = "0.0.1"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 libc = "0.2.161"

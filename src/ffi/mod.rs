@@ -52,7 +52,7 @@ impl From<std::io::Error> for Error {
 mod external {
     use libc::{c_char, c_int, c_uchar};
 
-    #[link(name = "chatcore")]
+    #[link(name = "libsimplex")]
     extern "C" {
         pub fn initChatClient();
         pub fn sendMessage(message: *const c_char);

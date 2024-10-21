@@ -2373,6 +2373,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e53debba6bda7a793e5f99b8dacf19e626084f525f7829104ba9898f367d85ff"
 
 [[package]]
+name = "muchat"
+version = "0.0.1"
+dependencies = [
+ "gpui",
+ "libc",
+]
+
+[[package]]
 name = "naga"
 version = "22.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3452,14 +3460,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a11be7c62927d9427e9f40f3444d5499d868648e2edbc4e2116de69e7ec0e89d"
 dependencies = [
  "log",
-]
-
-[[package]]
-name = "simplex-chat-sys"
-version = "0.0.1"
-dependencies = [
- "gpui",
- "libc",
 ]
 
 [[package]]
