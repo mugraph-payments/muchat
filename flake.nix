@@ -6,7 +6,6 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    process-compose.url = "github:Platonic-Systems/process-compose-flake";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -18,13 +17,14 @@
       nixpkgs,
       rust-overlay,
       flake-utils,
-      process-compose,
       pre-commit-hooks,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        inherit (builtins) attrValues;
+
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
@@ -46,48 +46,17 @@
           cargo = rust;
         };
 
-        packages = rec {
-          muchat = rustPlatform.buildRustPackage {
-            name = "muchat";
-            src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
-            doCheck = false;
-          };
-          default = muchat;
+        scripts.muchat-watch = writeShellApplication {
+          name = "muchat-watch";
+          runtimeInputs = with pkgs; [
+            cargo-nextest
+            cargo-watch
 
-          muchat-watch = (import process-compose.lib { inherit pkgs; }).makeProcessCompose {
-            modules = [
-              {
-                settings.processes.muchat-mint.command = "${muchat-ci}/bin/muchat-ci";
-              }
-            ];
-          };
-
-          muchat-test = writeShellApplication {
-            name = "muchat-test";
-            runtimeInputs = with pkgs; [
-              rust
-              cargo-nextest
-            ];
-            text = ''
-              exec cargo nextest run
-            '';
-          };
-
-          muchat-ci = writeShellApplication {
-            name = "muchat-ci";
-            runtimeInputs = with pkgs; [
-              cargo-nextest
-              cargo-watch
-
-              muchat-test
-              rust
-            ];
-            text = ''
-              exec cargo watch -s 'cargo fmt && cargo clippy --all && muchat-test'
-            '';
-          };
-
+            rust
+          ];
+          text = ''
+            exec cargo watch -s 'cargo fmt && cargo clippy --all && cargo nextest run'
+          '';
         };
 
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
@@ -110,11 +79,20 @@
         '';
       in
       {
-        inherit packages;
-
         checks = {
           inherit pre-commit-check;
         };
+
+        packages = rec {
+          default = muchat;
+
+          muchat = rustPlatform.buildRustPackage {
+            name = "muchat";
+            src = ./.;
+            cargoLock.lockFile = ./Cargo.lock;
+            doCheck = false;
+          };
+        } // scripts;
 
         devShells.default = mkShell {
           shellHook = ''
@@ -127,8 +105,7 @@
           buildInputs =
             with pkgs;
             [
-              packages.muchat-watch
-              packages.muchat-test
+              (attrValues scripts)
 
               rust
               cargo-nextest
