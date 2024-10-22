@@ -38,7 +38,7 @@
           ;
         inherit (pkgs.darwin.apple_sdk) frameworks;
         inherit (pkgs.lib) optionals optionalString;
-        inherit (pkgs.stdenv) isDarwin;
+        inherit (pkgs.stdenv) isDarwin isLinux;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         rustPlatform = makeRustPlatform {
@@ -123,7 +123,11 @@
                 ApplicationServices
                 Security
               ]
-            );
+            )
+            ++ optionals isLinux [
+              xorg.libxcb
+              libxkbcommon
+            ];
         };
       }
     );
