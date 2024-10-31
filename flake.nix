@@ -15,9 +15,9 @@
   outputs =
     {
       nixpkgs,
-      rust-overlay,
       flake-utils,
       pre-commit-hooks,
+      rust-overlay,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (

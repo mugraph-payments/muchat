@@ -1,5 +1,4 @@
 use gpui::*;
-use muchat::*;
 
 struct HelloWorld {
     text: SharedString,
