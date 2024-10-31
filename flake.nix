@@ -110,6 +110,8 @@
           shellHook = ''
             ${pre-commit-check.shellHook}
             ${shell-patch}
+
+            export LD_LIBRARY_PATH="${pkgs.lib.getLib pkgs.vulkan-tools.libraryPath}:$LD_LIBRARY_PATH"
           '';
 
           name = "muchat";
