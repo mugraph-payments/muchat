@@ -139,6 +139,8 @@
             ++ optionals isLinux [
               xorg.libxcb
               libxkbcommon
+              vulkan-tools
+              vulkan-headers
             ];
         };
       }
