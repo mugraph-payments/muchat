@@ -1,3 +1,6 @@
+[workspace]
+members = ["client"]
+
 [package]
 name = "muchat"
 version = "0.0.1"
