@@ -1,4 +1,5 @@
-use std::collections::VecDeque;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::{collections::VecDeque, sync::atomic::AtomicUsize};
 use std::sync::Arc;
 use tokio::sync::{
   mpsc::{self, Receiver, Sender},
@@ -24,10 +25,10 @@ pub enum QueueItem<T> {
 #[derive(Debug, Clone)]
 pub struct Queue<T> {
   queue: Arc<Mutex<VecDeque<QueueItem<T>>>>,
-  enq_capacity: Arc<Mutex<usize>>,
-  deq_capacity: Arc<Mutex<usize>>,
-  enq_closed: Arc<Mutex<bool>>,
-  deq_closed: Arc<Mutex<bool>>,
+  enq_capacity: Arc<AtomicUsize>,
+  deq_capacity: Arc<AtomicUsize>,
+  enq_closed: Arc<AtomicBool>,
+  deq_closed: Arc<AtomicBool>,
   queue_subscription_receiver: Arc<Mutex<Receiver<T>>>,
   queue_subscription_sender: Arc<Mutex<Sender<T>>>,
 }
@@ -37,10 +38,10 @@ impl<T: std::fmt::Debug + Clone> Queue<T> {
     let (sender, receiver) = mpsc::channel(100);
     Queue {
       queue: Arc::new(Mutex::new(VecDeque::new())),
-      enq_capacity: Arc::new(Mutex::new(max_size)),
-      deq_capacity: Arc::new(Mutex::new(0)),
-      enq_closed: Arc::new(Mutex::new(false)),
-      deq_closed: Arc::new(Mutex::new(false)),
+      enq_capacity: Arc::new(AtomicUsize::new(max_size)),
+      deq_capacity: Arc::new(AtomicUsize::new(0)),
+      enq_closed: Arc::new(AtomicBool::new(false)),
+      deq_closed: Arc::new(AtomicBool::new(false)),
       queue_subscription_receiver: Arc::new(Mutex::new(receiver)),
       queue_subscription_sender: Arc::new(Mutex::new(sender)),
     }
@@ -51,14 +52,13 @@ impl<T: std::fmt::Debug + Clone> Queue<T> {
   }
 
   pub async fn enqueue(&self, item: T) -> Result<(), QueueError> {
-    let mut enq_capacity = self.enq_capacity.lock().await;
     let mut queue = self.queue.lock().await;
 
-    if *self.enq_closed.lock().await {
+    if self.enq_closed.load(Ordering::SeqCst) {
       return Err(QueueError::EnqueueClosed);
     }
 
-    if queue.len() == *enq_capacity {
+    if queue.len() == self.enq_capacity.load(Ordering::SeqCst) {
       return Err(QueueError::QueueFull);
     }
 
@@ -70,17 +70,16 @@ impl<T: std::fmt::Debug + Clone> Queue<T> {
       .await;
 
     queue.push_back(QueueItem::Item(item));
-    *enq_capacity -= 1;
-    *self.deq_capacity.lock().await += 1;
+    self.enq_capacity.fetch_sub(1, Ordering::SeqCst);
+    self.deq_capacity.fetch_add(1, Ordering::SeqCst);
 
     Ok(())
   }
 
   pub async fn dequeue(&self) -> Result<T, QueueError> {
-    let mut deq_capacity = self.deq_capacity.lock().await;
     let mut queue = self.queue.lock().await;
 
-    if *self.deq_closed.lock().await {
+    if self.deq_closed.load(Ordering::SeqCst) {
       return Err(QueueError::DequeueClosed);
     }
 
@@ -89,13 +88,13 @@ impl<T: std::fmt::Debug + Clone> Queue<T> {
     }
 
     if let QueueItem::Closed = queue.front().unwrap() {
-      *self.deq_closed.lock().await = true;
+      self.deq_closed.store(true, Ordering::SeqCst);
       return Err(QueueError::QueueClosed);
     }
 
     let item = queue.pop_front().unwrap();
-    *deq_capacity -= 1;
-    *self.enq_capacity.lock().await += 1;
+    self.deq_capacity.fetch_sub(1, Ordering::SeqCst);
+    self.enq_capacity.fetch_add(1, Ordering::SeqCst);
 
     if let QueueItem::Item(x) = item {
       Ok(x)
@@ -107,6 +106,6 @@ impl<T: std::fmt::Debug + Clone> Queue<T> {
   pub async fn close(&self) {
     let mut queue = self.queue.lock().await;
     queue.push_back(QueueItem::Closed);
-    *self.enq_closed.lock().await = true;
+    self.enq_closed.store(true, Ordering::SeqCst);
   }
 }
