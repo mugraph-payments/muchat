@@ -1,5 +1,5 @@
 [workspace]
-members = ["chat"]
+members = ["chat", "protocol"]
 
 [package]
 name = "muchat"
