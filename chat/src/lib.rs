@@ -1,21 +1,20 @@
-
-use std::{sync::Arc, time::Duration};
 use crate::client::ChatClient;
 use crate::commands::ChatCommand;
 use crate::error::TransportError;
 use crate::queue::QueueError;
 use crate::response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
+use std::{sync::Arc, time::Duration};
 use tokio::{
   self,
   signal::{self},
 };
 
+pub mod client;
 pub mod commands;
 pub mod error;
 pub mod queue;
 pub mod response;
 pub mod utils;
-pub mod client;
 
 pub async fn process_messages(client: Arc<ChatClient>) {
   let subscriber_lock = client.message_queue.subscribe().await;
@@ -63,8 +62,7 @@ pub async fn process_messages(client: Arc<ChatClient>) {
   }
 }
 
-#[tokio::main]
-pub async fn run() -> Result<(), TransportError> {
+pub async fn squaring_bot() -> Result<(), TransportError> {
   let client = Arc::new(ChatClient::new().await?);
 
   let mut response = client
@@ -111,4 +109,24 @@ pub async fn run() -> Result<(), TransportError> {
 
   signal::ctrl_c().await.expect("Failed to listen for Ctrl+C");
   Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[tokio::test]
+  async fn test_command() {
+    let client = Arc::new(ChatClient::new().await.unwrap());
+
+    let response = client
+      .send_command::<ChatResponse>(ChatCommand::ShowActiveUser.value().to_string(), None)
+      .await;
+
+    assert!(
+      response.is_ok(),
+      "Command failed with error: {:?}",
+      response.err()
+    );
+  }
 }
