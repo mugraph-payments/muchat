@@ -11,22 +11,16 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 
-use crate::chat_client::commands::CommandData;
-use crate::chat_client::commands::CommandPayload;
-use crate::chat_client::commands::ComposedMessage;
-use crate::chat_client::error::TransportError;
-use crate::chat_client::queue::Queue;
-use crate::chat_client::response::ChatInfoType;
-use crate::chat_client::response::ChatResponse;
-use crate::chat_client::response::MCText;
-use crate::chat_client::response::MsgContent;
-use crate::chat_client::response::ServerResponse;
-
-pub mod commands;
-pub mod error;
-pub mod queue;
-pub mod response;
-pub mod utils;
+use crate::commands::CommandData;
+use crate::commands::CommandPayload;
+use crate::commands::ComposedMessage;
+use crate::error::TransportError;
+use crate::queue::Queue;
+use crate::response::ChatInfoType;
+use crate::response::ChatResponse;
+use crate::response::MCText;
+use crate::response::MsgContent;
+use crate::response::ServerResponse;
 
 pub struct ChatClient {
   pub message_queue: Arc<Queue<ChatResponse>>,

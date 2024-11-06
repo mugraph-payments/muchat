@@ -1,15 +1,21 @@
-mod chat_client;
 
 use std::{sync::Arc, time::Duration};
-use chat_client::ChatClient;
-use chat_client::commands::ChatCommand;
-use chat_client::error::TransportError;
-use chat_client::queue::QueueError;
-use chat_client::response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
+use crate::client::ChatClient;
+use crate::commands::ChatCommand;
+use crate::error::TransportError;
+use crate::queue::QueueError;
+use crate::response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
 use tokio::{
   self,
   signal::{self},
 };
+
+pub mod commands;
+pub mod error;
+pub mod queue;
+pub mod response;
+pub mod utils;
+pub mod client;
 
 pub async fn process_messages(client: Arc<ChatClient>) {
   let subscriber_lock = client.message_queue.subscribe().await;
@@ -25,7 +31,7 @@ pub async fn process_messages(client: Arc<ChatClient>) {
                 _ => {}
               }
 
-              if let Some(content) = chat_client::utils::extract_text_content(item.chat_item.content) {
+              if let Some(content) = crate::utils::extract_text_content(item.chat_item.content) {
                 let number: Result<f64, _> = content.parse();
                 let reply = match number {
                   Ok(n) => format!("{} * {} = {}", n, n, n * n),
@@ -58,7 +64,7 @@ pub async fn process_messages(client: Arc<ChatClient>) {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), TransportError> {
+pub async fn run() -> Result<(), TransportError> {
   let client = Arc::new(ChatClient::new().await?);
 
   let mut response = client
