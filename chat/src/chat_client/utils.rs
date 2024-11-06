@@ -1,4 +1,4 @@
-use crate::simplex_client::response::{CIContent, MsgContent};
+use crate::chat_client::response::{CIContent, MsgContent};
 
 pub fn extract_text_content(content: CIContent) -> Option<String> {
   match content {

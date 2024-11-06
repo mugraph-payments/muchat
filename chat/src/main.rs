@@ -1,17 +1,17 @@
-mod simplex_client;
+mod chat_client;
 
 use std::{sync::Arc, time::Duration};
-use simplex_client::SimplexClient;
-use simplex_client::commands::ChatCommand;
-use simplex_client::error::TransportError;
-use simplex_client::queue::QueueError;
-use simplex_client::response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
+use chat_client::ChatClient;
+use chat_client::commands::ChatCommand;
+use chat_client::error::TransportError;
+use chat_client::queue::QueueError;
+use chat_client::response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
 use tokio::{
   self,
   signal::{self},
 };
 
-pub async fn process_messages(client: Arc<SimplexClient>) {
+pub async fn process_messages(client: Arc<ChatClient>) {
   let subscriber_lock = client.message_queue.subscribe().await;
   let mut subscriber = subscriber_lock.lock().await;
   while let Some(_) = subscriber.recv().await {
@@ -25,7 +25,7 @@ pub async fn process_messages(client: Arc<SimplexClient>) {
                 _ => {}
               }
 
-              if let Some(content) = simplex_client::utils::extract_text_content(item.chat_item.content) {
+              if let Some(content) = chat_client::utils::extract_text_content(item.chat_item.content) {
                 let number: Result<f64, _> = content.parse();
                 let reply = match number {
                   Ok(n) => format!("{} * {} = {}", n, n, n * n),
@@ -59,7 +59,7 @@ pub async fn process_messages(client: Arc<SimplexClient>) {
 
 #[tokio::main]
 async fn main() -> Result<(), TransportError> {
-  let client = Arc::new(SimplexClient::new().await?);
+  let client = Arc::new(ChatClient::new().await?);
 
   let mut response = client
     .send_command::<ChatResponse>(ChatCommand::ShowActiveUser.value().to_string(), None)

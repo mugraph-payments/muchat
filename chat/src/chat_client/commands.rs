@@ -1,4 +1,4 @@
-use crate::simplex_client::response::MsgContent;
+use crate::chat_client::response::MsgContent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

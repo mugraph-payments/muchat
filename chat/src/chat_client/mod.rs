@@ -11,16 +11,16 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 
-use crate::simplex_client::commands::CommandData;
-use crate::simplex_client::commands::CommandPayload;
-use crate::simplex_client::commands::ComposedMessage;
-use crate::simplex_client::error::TransportError;
-use crate::simplex_client::queue::Queue;
-use crate::simplex_client::response::ChatInfoType;
-use crate::simplex_client::response::ChatResponse;
-use crate::simplex_client::response::MCText;
-use crate::simplex_client::response::MsgContent;
-use crate::simplex_client::response::ServerResponse;
+use crate::chat_client::commands::CommandData;
+use crate::chat_client::commands::CommandPayload;
+use crate::chat_client::commands::ComposedMessage;
+use crate::chat_client::error::TransportError;
+use crate::chat_client::queue::Queue;
+use crate::chat_client::response::ChatInfoType;
+use crate::chat_client::response::ChatResponse;
+use crate::chat_client::response::MCText;
+use crate::chat_client::response::MsgContent;
+use crate::chat_client::response::ServerResponse;
 
 pub mod commands;
 pub mod error;
@@ -28,7 +28,7 @@ pub mod queue;
 pub mod response;
 pub mod utils;
 
-pub struct SimplexClient {
+pub struct ChatClient {
   pub message_queue: Arc<Queue<ChatResponse>>,
   sender: Sender<(CommandPayload, oneshot::Sender<ServerResponse>)>,
   corr_id: Arc<Mutex<u64>>,
@@ -36,13 +36,13 @@ pub struct SimplexClient {
 
 type ResponseMap = Arc<Mutex<HashMap<String, oneshot::Sender<ServerResponse>>>>;
 
-impl SimplexClient {
+impl ChatClient {
   pub async fn new() -> Result<Self, TransportError> {
     let url = "ws://localhost:5225";
     let (sender, reader) = mpsc::channel(100);
     let message_queue = Queue::<ChatResponse>::new(100);
 
-    let client = SimplexClient {
+    let client = ChatClient {
       sender,
       message_queue: Arc::new(message_queue),
       corr_id: Arc::new(Mutex::new(0)),
