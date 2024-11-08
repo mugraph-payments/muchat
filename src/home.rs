@@ -1,11 +1,13 @@
 use iced::padding::left;
+use iced::widget::text::Style as TextStyle;
 use iced::widget::text_input::Style;
 use iced::widget::{
-    column, container, horizontal_rule, mouse_area, row, text, text_input, vertical_rule,
+    column, container, horizontal_rule, mouse_area, row, scrollable, text, text_input,
+    vertical_rule,
 };
 use iced::Alignment::Center;
-use iced::Length::Fill;
-use iced::{Border, Element, Padding};
+use iced::Length::{self, Fill};
+use iced::{color, Border, Element, Font, Padding};
 
 #[derive(Default)]
 struct ChatInfo {
@@ -52,7 +54,7 @@ impl Application {
     }
 }
 
-fn home<'a>(app: &Application) -> Element<'a, Event> {
+fn home<'a>(app: &Application) -> Element<Event> {
     let name = "Bob";
 
     let sidebar = container(
@@ -101,12 +103,7 @@ fn home<'a>(app: &Application) -> Element<'a, Event> {
             .padding(15)
             .width(Fill);
 
-        let messages = app
-            .messages
-            .iter()
-            .map(|msg| format!("{}", msg))
-            .collect::<Vec<String>>()
-            .join("\n");
+        let message_history = app.messages.iter().map(message_buble);
 
         column![
             container(text(format!("{}'s chat", app.chat_info.name)).size(20))
@@ -115,15 +112,30 @@ fn home<'a>(app: &Application) -> Element<'a, Event> {
                 .height(48)
                 .width(Fill),
             horizontal_rule(0.5),
-            container(text(format!("{}", messages)))
-                .align_x(Center)
-                .align_y(Center)
-                .height(Fill)
-                .width(Fill),
+            scrollable(column(message_history).spacing(10).padding([10, 16]))
+                .height(Length::Fill)
+                .width(Length::Fill),
             horizontal_rule(0.5),
             container(input).padding(10)
         ]
+        .into()
     };
 
     column![row![sidebar, divider, main_content]].into()
+}
+
+fn message_buble(message: &String) -> Element<Event> {
+    let bubble = container(column![
+        text("Me")
+            .font(Font {
+                weight: iced::font::Weight::Semibold,
+                ..Default::default()
+            })
+            .style(|theme| TextStyle {
+                ..text::secondary(theme)
+            }),
+        text(message).color(color!(120, 253, 255))
+    ]);
+
+    Element::from(bubble)
 }
