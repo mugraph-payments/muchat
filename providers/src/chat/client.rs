@@ -1,6 +1,8 @@
 use futures::SinkExt;
 use futures::StreamExt;
 use std::collections::HashMap;
+use std::sync::atomic::AtomicU16;
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::TcpStream;
@@ -25,7 +27,7 @@ use super::response::ServerResponse;
 pub struct ChatClient {
   pub message_queue: Arc<Queue<ChatResponse>>,
   sender: Sender<(CommandPayload, oneshot::Sender<ServerResponse>)>,
-  corr_id: Arc<Mutex<u64>>,
+  corr_id: Arc<AtomicU16>,
 }
 
 type ResponseMap = Arc<Mutex<HashMap<String, oneshot::Sender<ServerResponse>>>>;
@@ -39,7 +41,7 @@ impl ChatClient {
     let client = ChatClient {
       sender,
       message_queue: Arc::new(message_queue),
-      corr_id: Arc::new(Mutex::new(0)),
+      corr_id: Arc::new(AtomicU16::new(0)),
     };
 
     let reader_arc = Arc::new(Mutex::new(reader));
@@ -182,18 +184,13 @@ impl ChatClient {
     command_text: String,
     corr_id: Option<String>,
   ) -> Result<T, TransportError> {
-    let mut current_id = self.corr_id.lock().await;
-    let corr_id = match corr_id {
+    let corr_id_string = match corr_id {
       Some(id) => Some(id),
-      None => {
-        let corr_str = current_id.to_string();
-        *current_id += 1;
-        Some(corr_str)
-      }
+      None => Some(self.corr_id.fetch_add(1, Ordering::SeqCst).to_string()),
     };
 
     let command = CommandPayload {
-      corr_id,
+      corr_id: corr_id_string,
       cmd: command_text,
     };
 
