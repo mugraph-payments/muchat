@@ -1,5 +1,8 @@
+use async_stream::stream;
 use futures::SinkExt;
+use futures::Stream;
 use futures::StreamExt;
+
 use std::collections::HashMap;
 use std::sync::atomic::AtomicU16;
 use std::sync::atomic::Ordering;
@@ -17,7 +20,6 @@ use super::commands::CommandData;
 use super::commands::CommandPayload;
 use super::commands::ComposedMessage;
 use super::error::TransportError;
-use super::queue::Queue;
 use super::response::ChatInfoType;
 use super::response::ChatResponse;
 use super::response::MCText;
@@ -25,8 +27,8 @@ use super::response::MsgContent;
 use super::response::ServerResponse;
 
 pub struct ChatClient {
-  pub message_queue: Arc<Queue<ChatResponse>>,
-  sender: Sender<(CommandPayload, oneshot::Sender<ServerResponse>)>,
+  command_sender: Sender<(CommandPayload, oneshot::Sender<ServerResponse>)>,
+  response_stream_reader: Arc<Mutex<Receiver<ServerResponse>>>,
   corr_id: Arc<AtomicU16>,
 }
 
@@ -35,26 +37,36 @@ type ResponseMap = Arc<Mutex<HashMap<String, oneshot::Sender<ServerResponse>>>>;
 impl ChatClient {
   pub async fn new() -> Result<Self, TransportError> {
     let url = "ws://localhost:5225";
-    let (sender, reader) = mpsc::channel(100);
-    let message_queue = Queue::<ChatResponse>::new(100);
+    let (command_sender, command_reader) = mpsc::channel(100);
+    let (response_stream_sender, response_stream_reader) = mpsc::channel(100);
 
     let client = ChatClient {
-      sender,
-      message_queue: Arc::new(message_queue),
+      command_sender,
+      response_stream_reader: Arc::new(Mutex::new(response_stream_reader)),
       corr_id: Arc::new(AtomicU16::new(0)),
     };
 
-    let reader_arc = Arc::new(Mutex::new(reader));
+    let command_reader_arc = Arc::new(Mutex::new(command_reader));
     let response_map: ResponseMap = Arc::new(Mutex::new(HashMap::new()));
 
     tokio::spawn(Self::connection_handler(
       url.to_string(),
-      Arc::clone(&reader_arc),
+      Arc::clone(&command_reader_arc),
+      response_stream_sender,
       Arc::clone(&response_map),
-      Arc::clone(&client.message_queue),
     ));
 
     Ok(client)
+  }
+
+  pub fn response_stream(&self) -> impl Stream<Item = ServerResponse> + '_ {
+    let response_stream_reader = Arc::clone(&self.response_stream_reader);
+    stream! {
+        let mut receiver = response_stream_reader.lock().await;
+        while let Some(response) = receiver.recv().await {
+            yield response;
+        }
+    }
   }
 
   async fn create_connection(
@@ -69,9 +81,9 @@ impl ChatClient {
 
   async fn connection_handler(
     url: String,
-    reader: Arc<Mutex<Receiver<(CommandPayload, oneshot::Sender<ServerResponse>)>>>,
+    command_reader: Arc<Mutex<Receiver<(CommandPayload, oneshot::Sender<ServerResponse>)>>>,
+    message_stream_sender: Sender<ServerResponse>,
     response_map: ResponseMap,
-    message_queue: Arc<Queue<ChatResponse>>,
   ) -> Result<(), TransportError> {
     loop {
       let ws_stream = tokio::time::timeout(Duration::from_secs(15), Self::create_connection(&url))
@@ -87,28 +99,22 @@ impl ChatClient {
       // Handle incoming messages
       let read_future = tokio::spawn({
         let response_map = Arc::clone(&response_map);
-        let message_queue = Arc::clone(&message_queue);
+        let message_stream_sender = message_stream_sender.clone();
         async move {
           while let Some(message_result) = read.next().await {
             match message_result {
-              Ok(msg) => {
-                match Self::handle_server_message(msg).await {
-                  Ok(response) => {
-                    let mut map = response_map.lock().await;
-                    let data = response.resp.clone();
-                    if let Some(ref corr_id) = response.corr_id {
-                      if let Some(sender) = map.remove(corr_id) {
-                        let _ = sender.send(response);
-                      }
-                    }
-                    if let Err(e) = message_queue.enqueue(data).await {
-                      eprintln!("🟥 Error queuing {:?}", e);
+              Ok(msg) => match Self::handle_server_message(msg).await {
+                Ok(response) => {
+                  let mut map = response_map.lock().await;
+                  if let Some(ref corr_id) = response.corr_id {
+                    if let Some(sender) = map.remove(corr_id) {
+                      let _ = sender.send(response.clone());
                     }
                   }
-                  // Err(e) => println!("🟥 {:?}:\n {:?}", e, msg_clone,),
-                  Err(_) => {}
+                  let _ = message_stream_sender.send(response.clone()).await;
                 }
-              }
+                Err(_) => {}
+              },
               Err(e) => {
                 eprintln!("Error receiving message: {}", e);
                 return Err(TransportError::WebSocket(e.to_string()));
@@ -121,12 +127,12 @@ impl ChatClient {
 
       // Handle outgoing messages
       let write_future = tokio::spawn({
-        let reader_clone = Arc::clone(&reader);
+        let command_reader_clone = Arc::clone(&command_reader);
         let response_map = Arc::clone(&response_map);
         async move {
           loop {
             let cmd_option = {
-              let mut reader_lock = reader_clone.lock().await;
+              let mut reader_lock = command_reader_clone.lock().await;
               reader_lock.recv().await
             };
 
@@ -196,7 +202,7 @@ impl ChatClient {
 
     let (response_sender, response_receiver) = oneshot::channel();
     self
-      .sender
+      .command_sender
       .send((command, response_sender))
       .await
       .map_err(|e| TransportError::WebSocket(e.to_string()))?;
