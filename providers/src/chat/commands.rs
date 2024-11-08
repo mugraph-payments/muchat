@@ -1,4 +1,4 @@
-use crate::response::MsgContent;
+use super::response::MsgContent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

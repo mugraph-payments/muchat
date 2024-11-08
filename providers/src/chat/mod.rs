@@ -1,8 +1,8 @@
-use crate::client::ChatClient;
-use crate::commands::ChatCommand;
-use crate::error::TransportError;
-use crate::queue::QueueError;
-use crate::response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
+use client::ChatClient;
+use commands::ChatCommand;
+use error::TransportError;
+use queue::QueueError;
+use response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
 use std::{sync::Arc, time::Duration};
 use tokio::{
   self,
@@ -30,7 +30,7 @@ pub async fn process_messages(client: Arc<ChatClient>) {
                 _ => {}
               }
 
-              if let Some(content) = crate::utils::extract_text_content(item.chat_item.content) {
+              if let Some(content) = utils::extract_text_content(item.chat_item.content) {
                 let number: Result<f64, _> = content.parse();
                 let reply = match number {
                   Ok(n) => format!("{} * {} = {}", n, n, n * n),

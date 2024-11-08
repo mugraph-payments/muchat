@@ -1,4 +1,4 @@
-use crate::response::{CIContent, MsgContent};
+use super::response::{CIContent, MsgContent};
 
 pub fn extract_text_content(content: CIContent) -> Option<String> {
   match content {
