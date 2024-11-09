@@ -58,7 +58,7 @@ where
 }
 
 pub async fn squaring_bot() -> Result<(), TransportError> {
-  let (client, stream_future) = ChatClient::new().await?;
+  let (client, stream_future) = ChatClient::new("ws://localhost:5225".to_string()).await?;
   let client = Arc::new(client);
   client
     .send_command(ChatCommand::ShowActiveUser.value().to_string(), None)

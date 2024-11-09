@@ -35,14 +35,15 @@ pub struct ChatClient {
 pub type StreamMessage = Result<ServerResponse, TransportError>;
 
 impl ChatClient {
-  pub async fn new() -> Result<
+  pub async fn new(
+    url: String,
+  ) -> Result<
     (
       Self,
       impl Future<Output = impl Stream<Item = StreamMessage>>,
     ),
     TransportError,
   > {
-    let url = "ws://localhost:5225";
     let (command_sender, command_reader) = mpsc::channel(100);
     let client = ChatClient {
       command_sender,
@@ -67,7 +68,9 @@ impl ChatClient {
   async fn create_connection(
     url: &str,
   ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, TransportError> {
-    let (ws_stream, _) = connect_async(url).await.map_err(|e| TransportError::WebSocket(e.to_string()))?;
+    let (ws_stream, _) = connect_async(url)
+      .await
+      .map_err(|e| TransportError::WebSocket(e.to_string()))?;
     Ok(ws_stream)
   }
 
