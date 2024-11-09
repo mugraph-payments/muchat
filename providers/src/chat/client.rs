@@ -52,10 +52,7 @@ impl ChatClient {
 
     let ws_stream = tokio::time::timeout(Duration::from_secs(15), Self::create_connection(&url))
       .await
-      .map_err(|_| {
-        eprintln!("🟥 Connection attempt timed out");
-        TransportError::Timeout
-      })??;
+      .map_err(|_| TransportError::Timeout)??;
     let (write, read) = ws_stream.split();
 
     tokio::spawn(Self::write_server_messages(
@@ -70,10 +67,7 @@ impl ChatClient {
   async fn create_connection(
     url: &str,
   ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, TransportError> {
-    let (ws_stream, _) = connect_async(url).await.map_err(|e| {
-      println!("🟥 Error creating connection: {:?}", e);
-      TransportError::WebSocket(e.to_string())
-    })?;
+    let (ws_stream, _) = connect_async(url).await.map_err(|e| TransportError::WebSocket(e.to_string()))?;
     Ok(ws_stream)
   }
 
@@ -123,10 +117,7 @@ impl ChatClient {
           serde_json::from_str(&text).map_err(|e| TransportError::InvalidFormat(e.to_string()))?;
         Ok(response)
       }
-      Message::Close(_) => {
-        println!("🟥 Message::Close");
-        return Err(TransportError::ConnectionClosed);
-      }
+      Message::Close(_) => Err(TransportError::ConnectionClosed),
       _ => Err(TransportError::GenericError),
     }
   }
