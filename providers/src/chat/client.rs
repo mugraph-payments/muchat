@@ -1,4 +1,4 @@
-use async_stream::stream;
+use async_stream::try_stream;
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
 use futures::Future;
@@ -32,11 +32,13 @@ pub struct ChatClient {
   corr_id: Arc<AtomicU16>,
 }
 
+pub type StreamMessage = Result<ServerResponse, TransportError>;
+
 impl ChatClient {
   pub async fn new() -> Result<
     (
       Self,
-      impl Future<Output = impl Stream<Item = ServerResponse>>,
+      impl Future<Output = impl Stream<Item = StreamMessage>>,
     ),
     TransportError,
   > {
@@ -102,19 +104,13 @@ impl ChatClient {
 
   async fn read_server_messages(
     mut read: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
-  ) -> impl Stream<Item = ServerResponse> {
-    stream! {
-        while let Some(msg) = read.next().await {
-          match msg {
-            Ok(message) => {
-              match Self::handle_server_message(message).await {
-                Ok(response) => {
-                  yield response;
-                },
-                Err(_) => {}
+  ) -> impl Stream<Item = StreamMessage> {
+    try_stream! {
+        loop {
+          if let Some(Ok(message)) = read.next().await {
+            if let Ok(response) = Self::handle_server_message(message).await {
+              yield response;
             }
-            },
-            Err(_) => {}
           }
         }
     }
