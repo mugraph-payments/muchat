@@ -28,6 +28,9 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
+          config.permittedInsecurePackages = [
+            "openssl-1.1.1w"
+          ];
         };
 
         inherit (pkgs)
@@ -124,6 +127,8 @@
               rust
               cargo-nextest
               cargo-watch
+              openssl
+              openssl_1_1
             ]
             ++ (
               with frameworks;
