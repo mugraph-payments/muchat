@@ -1,3 +1,6 @@
+[workspace]
+members = ["providers"]
+
 [package]
 name = "muchat"
 version = "0.0.1"
