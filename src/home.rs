@@ -1,8 +1,8 @@
 use iced::padding::left;
 use iced::widget::text::Style as TextStyle;
-use iced::widget::text_input::Style;
+use iced::widget::text_editor::Style;
 use iced::widget::{
-    column, container, horizontal_rule, mouse_area, row, scrollable, text, text_input,
+    column, container, horizontal_rule, mouse_area, row, scrollable, text, text_editor,
     vertical_rule,
 };
 use iced::Alignment::Center;
@@ -18,14 +18,14 @@ struct ChatInfo {
 pub struct Application {
     state: bool,
     chat_info: ChatInfo,
-    content: String,
+    content: text_editor::Content,
     messages: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
 pub enum Event {
     ClickOnChat { name: String },
-    ContentChanged(String),
+    ContentChanged(text_editor::Action),
     SendMessage,
 }
 
@@ -36,21 +36,18 @@ impl Application {
                 self.state = true;
                 self.chat_info = ChatInfo { name };
             }
-            Event::ContentChanged(message) => {
-                self.content = message.clone();
+            Event::ContentChanged(content) => {
+                self.content.perform(content);
             }
             Event::SendMessage => {
-                self.messages.push(self.content.clone());
+                self.messages.push(self.content.text());
+                self.content = text_editor::Content::new();
             }
         }
     }
 
     pub fn view(&self) -> Element<Event> {
         home(self)
-    }
-
-    pub fn theme(&self) -> iced::Theme {
-        iced::Theme::CatppuccinMocha
     }
 }
 
@@ -82,8 +79,6 @@ fn home<'a>(app: &Application) -> Element<Event> {
         .width(300),
     );
 
-    let divider = container(vertical_rule(0.5)).height(Fill);
-
     let main_content = if !app.state {
         column![container(text("No selected chat"))
             .align_x(Center)
@@ -91,17 +86,24 @@ fn home<'a>(app: &Application) -> Element<Event> {
             .width(Fill)
             .height(Fill)]
     } else {
-        let input = text_input("Type something here...", &app.content)
-            .id("chat_input")
+        let test_input = text_editor(&app.content)
+            .placeholder("Type your message here...")
+            .on_action(Event::ContentChanged)
+            .padding(10)
             .style(move |theme, status| Style {
                 border: Border::default(),
-                ..text_input::default(theme, status)
+                ..text_editor::default(theme, status)
             })
-            .on_input(Event::ContentChanged)
-            .on_submit(Event::SendMessage)
-            .size(15)
-            .padding(15)
-            .width(Fill);
+            .key_binding(|key_press| {
+                let modifiers = key_press.modifiers;
+
+                match text_editor::Binding::from_key_press(key_press) {
+                    Some(text_editor::Binding::Enter) if !modifiers.shift() => {
+                        Some(text_editor::Binding::Custom(Event::SendMessage))
+                    }
+                    binding => binding,
+                }
+            });
 
         let message_history = app.messages.iter().map(message_buble);
 
@@ -116,12 +118,12 @@ fn home<'a>(app: &Application) -> Element<Event> {
                 .height(Length::Fill)
                 .width(Length::Fill),
             horizontal_rule(0.5),
-            container(input).padding(10)
+            container(test_input).padding(10)
         ]
         .into()
     };
 
-    column![row![sidebar, divider, main_content]].into()
+    column![row![sidebar, vertical_rule(0.5), main_content]].into()
 }
 
 fn message_buble(message: &String) -> Element<Event> {
