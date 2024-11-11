@@ -86,18 +86,6 @@ fn home<'a>(app: &Application) -> Element<Event> {
             .width(Fill)
             .height(Fill)]
     } else {
-        // let input = text_input("Type something here...", &app.content)
-        //     .id("chat_input")
-        //     .style(move |theme, status| Style {
-        //         border: Border::default(),
-        //         ..text_input::default(theme, status)
-        //     })
-        //     .on_input(Event::ContentChanged)
-        //     .on_submit(Event::SendMessage)
-        //     .size(15)
-        //     .padding(15)
-        //     .width(Fill);
-
         let test_input = text_editor(&app.content)
             .placeholder("Type your message here...")
             .on_action(Event::ContentChanged)
