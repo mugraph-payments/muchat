@@ -1,11 +1,12 @@
 use async_stream::try_stream;
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
-use futures::Future;
 use futures::SinkExt;
 use futures::Stream;
 use futures::StreamExt;
 
+use core::fmt;
+use std::pin::Pin;
 use std::sync::atomic::AtomicU16;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -26,29 +27,41 @@ use super::response::MCText;
 use super::response::MsgContent;
 use super::response::ServerResponse;
 
+impl fmt::Debug for ChatClient {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("ChatClient")
+            .field("command_sender", &"Sender<CommandPayload>")
+            .field("command_reader", &"Arc<Mutex<Receiver<CommandPayload>>>")
+            .field("corr_id", &self.corr_id)
+            .field("stream", &"Stream hidden")
+            .finish()
+    }
+}
+
+#[derive(Clone)]
 pub struct ChatClient {
     command_sender: Sender<CommandPayload>,
     command_reader: Arc<Mutex<Receiver<CommandPayload>>>,
     corr_id: Arc<AtomicU16>,
+    pub stream: Option<
+        Arc<
+            Mutex<
+                Pin<Box<dyn Stream<Item = Result<ServerResponse, TransportError>> + Send + Sync>>,
+            >,
+        >,
+    >,
 }
 
 pub type StreamMessage = Result<ServerResponse, TransportError>;
 
 impl ChatClient {
-    pub async fn new(
-        url: String,
-    ) -> Result<
-        (
-            Self,
-            impl Future<Output = impl Stream<Item = StreamMessage>>,
-        ),
-        TransportError,
-    > {
+    pub async fn new(url: String) -> Result<Self, TransportError> {
         let (command_sender, command_reader) = mpsc::channel(100);
-        let client = ChatClient {
+        let mut client = ChatClient {
             command_sender,
             command_reader: Arc::new(Mutex::new(command_reader)),
             corr_id: Arc::new(AtomicU16::new(0)),
+            stream: None,
         };
 
         let ws_stream =
@@ -63,7 +76,19 @@ impl ChatClient {
         ));
 
         let stream = Self::read_server_messages(read);
-        Ok((client, stream))
+        let read_stream_box: Option<
+            Arc<
+                Mutex<
+                    Pin<
+                        Box<
+                            dyn Stream<Item = Result<ServerResponse, TransportError>> + Send + Sync,
+                        >,
+                    >,
+                >,
+            >,
+        > = Some(Arc::new(Mutex::new(Box::pin(stream.await))));
+        client.stream = read_stream_box;
+        Ok(client)
     }
 
     async fn create_connection(
@@ -141,7 +166,8 @@ impl ChatClient {
             cmd: command_text,
         };
 
-        self.command_sender
+        let _ = self
+            .command_sender
             .send(command)
             .await
             .map_err(|e| TransportError::WebSocket(e.to_string()))?;

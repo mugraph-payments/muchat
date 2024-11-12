@@ -1,10 +1,10 @@
-use client::{ChatClient, StreamMessage};
+use client::ChatClient;
 use commands::ChatCommand;
 use error::TransportError;
 use response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
 use std::sync::Arc;
 
-use futures::{pin_mut, Stream, StreamExt};
+use futures::{pin_mut, StreamExt};
 use tokio::{
     self,
     signal::{self},
@@ -16,12 +16,16 @@ pub mod error;
 pub mod response;
 pub mod utils;
 
-pub async fn process_message_stream<S>(client: Arc<ChatClient>, message_stream: S)
-where
-    S: Stream<Item = StreamMessage> + Unpin,
-{
-    pin_mut!(message_stream);
-    while let Some(response) = message_stream.next().await {
+pub async fn process_message_stream(client: Arc<ChatClient>) {
+    if !client.stream.is_some() {
+        return;
+    }
+    let stream = client.stream.as_ref().unwrap();
+    let stream_lock = stream.lock().await;
+    pin_mut!(stream_lock);
+
+    while let Some(response) = stream_lock.next().await {
+        println!("{:?}", response);
         match response {
             Ok(message) => match message.resp {
                 ChatResponse::NewChatItems { chat_items, .. } => {
@@ -60,8 +64,12 @@ where
 }
 
 pub async fn squaring_bot() -> Result<(), TransportError> {
-    let (client, stream_future) = ChatClient::new("ws://localhost:5225".to_string()).await?;
+    let client = ChatClient::new("ws://localhost:5225".to_string()).await?;
     let client = Arc::new(client);
+
+    client
+        .send_command(ChatCommand::CreateMyAddress.value().to_string(), None)
+        .await?;
     client
         .send_command(ChatCommand::ShowActiveUser.value().to_string(), None)
         .await?;
@@ -70,9 +78,8 @@ pub async fn squaring_bot() -> Result<(), TransportError> {
         .await?;
 
     let client_clone = Arc::clone(&client);
-    let stream = Box::pin(stream_future.await);
     tokio::spawn(async move {
-        process_message_stream(client_clone, stream).await;
+        process_message_stream(client_clone).await;
     });
 
     signal::ctrl_c().await.expect("Failed to listen for Ctrl+C");

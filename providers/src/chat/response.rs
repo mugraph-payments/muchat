@@ -55,14 +55,14 @@ pub struct User {
     pub view_pwd_hash: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct ServerResponse {
     #[serde(rename = "corrId")]
     pub corr_id: Option<String>,
     pub resp: ChatResponse,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ChatResponse {
     #[serde(rename = "activeUser")]
@@ -146,6 +146,9 @@ pub enum ChatResponse {
         user: User,
         chat_items: Vec<AChatItem>,
     },
+
+    #[default]
+    UnknownMessage,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
