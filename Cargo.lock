@@ -2117,6 +2117,9 @@ name = "muchat"
 version = "0.0.1"
 dependencies = [
  "iced",
+ "muchat-providers",
+ "tokio",
+ "tokio-tungstenite",
 ]
 
 [[package]]

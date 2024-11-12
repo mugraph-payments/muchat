@@ -9,3 +9,6 @@ license = "MIT"
 
 [dependencies]
 iced = { version = "0.13.1", features = ["markdown", "highlighter", "debug"] }
+muchat-providers = { path = "providers" }
+tokio = { version = "1.28", features = ["full"] }
+tokio-tungstenite = "0.19"

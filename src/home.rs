@@ -1,47 +1,112 @@
+use futures::channel::mpsc;
+use futures::sink::SinkExt;
+use futures::stream::{Stream, StreamExt};
+use iced::futures::{self, pin_mut};
 use iced::padding::left;
 use iced::widget::text::Style as TextStyle;
 use iced::widget::text_editor::Style;
 use iced::widget::{
-    column, container, horizontal_rule, mouse_area, row, scrollable, text, text_editor,
+    self, column, container, horizontal_rule, mouse_area, row, scrollable, text, text_editor,
     vertical_rule,
 };
 use iced::Alignment::Center;
 use iced::Length::{self, Fill};
-use iced::{color, Border, Element, Font, Padding};
+use iced::{color, stream, Border, Element, Font, Padding, Subscription, Task};
+use muchat_providers::chat::client::ChatClient;
+use muchat_providers::chat::commands::ChatCommand;
+use muchat_providers::chat::response::{ChatResponse, DirectionType};
+use muchat_providers::chat::{self, utils};
+use tokio::runtime::Runtime;
 
 #[derive(Default)]
 struct ChatInfo {
     name: String,
 }
 
-#[derive(Default)]
 pub struct Application {
     state: bool,
     chat_info: ChatInfo,
     content: text_editor::Content,
     messages: Vec<String>,
+    client: Option<chat::client::ChatClient>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum Event {
+    // InitializeClient,
+    ClientInitialized(mpsc::Sender<Message>),
+    ClientDisconnected,
     ClickOnChat { name: String },
     ContentChanged(text_editor::Action),
     SendMessage,
 }
 
+enum State<'a> {
+    Disconnected,
+    Connected((&'a ChatClient, mpsc::Receiver<Message>)),
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    Connected,
+    Disconnected,
+    User(String),
+}
+
 impl Application {
-    pub fn update(&mut self, action: Event) {
+    pub fn initialize_client() -> Option<ChatClient> {
+        let runtime = Runtime::new().expect("Failed to create Tokio runtime");
+        let client = runtime.block_on(chat::client::ChatClient::new(
+            "ws://localhost:5225".to_string(),
+        ));
+        client.ok()
+    }
+
+    pub fn new() -> (Self, Task<Event>) {
+        (
+            Self {
+                state: false,
+                chat_info: ChatInfo::default(),
+                content: text_editor::Content::default(),
+                messages: Vec::new(),
+                client: None,
+            },
+            Task::batch([
+                // Task::perform(Application::initialize_client(), |client| {
+                //   Event::ClientInitialized(client)
+                // }),
+                widget::focus_next(),
+            ]),
+        )
+    }
+
+    pub fn update(&mut self, action: Event) -> Task<Event> {
         match action {
+            // Event::InitializeClient => {
+            //   Task::perform(Application::initialize_client(), Event::ClientInitialized)
+            // }
+            // Event::InitializeClient => Task::none(),
+            Event::ClientInitialized(sender) => {
+                println!("🟩 Client initialized");
+                Task::none()
+            }
+            Event::ClientDisconnected => {
+                self.client = None;
+                Task::none()
+            }
             Event::ClickOnChat { name } => {
                 self.state = true;
                 self.chat_info = ChatInfo { name };
+                Task::none()
             }
             Event::ContentChanged(content) => {
                 self.content.perform(content);
+                Task::none()
             }
             Event::SendMessage => {
                 self.messages.push(self.content.text());
                 self.content = text_editor::Content::new();
+                Task::none()
             }
         }
     }
@@ -49,6 +114,82 @@ impl Application {
     pub fn view(&self) -> Element<Event> {
         home(self)
     }
+
+    pub fn subscription(&self) -> Subscription<Event> {
+        Subscription::run(connect)
+    }
+}
+
+pub fn connect() -> impl Stream<Item = Event> {
+    stream::channel(100, |mut output| async move {
+        let mut state = State::Disconnected;
+        let client = Application::initialize_client();
+
+        loop {
+            match &mut state {
+                State::Disconnected => match &client {
+                    Some(client) => {
+                        let (sender, receiver) = mpsc::channel::<Message>(100);
+                        let _ = output.send(Event::ClientInitialized(sender)).await;
+                        state = State::Connected((client, receiver));
+                    }
+                    None => {}
+                },
+                State::Connected((client, input)) => {
+                    let stream_ref = client.stream.as_ref().unwrap();
+                    let stream_lock = stream_ref.lock().await;
+                    pin_mut!(stream_lock);
+
+                    // let _ = client
+                    //   .send_command(ChatCommand::CreateMyAddress.value().to_string(), None)
+                    //   .await;
+                    // client
+                    // .send_command(ChatCommand::ShowActiveUser.value().to_string(), None)
+                    // .await;
+
+                    while let Some(response) = stream_lock.next().await {
+                        println!("🟦 Received Message: {:?}", response);
+                        match response {
+                            Ok(message) => {
+                                match message.resp {
+                                    ChatResponse::NewChatItems { chat_items, .. } => {
+                                        for item in chat_items {
+                                            if let muchat_providers::chat::response::ChatInfo::Direct(c_info_direct) =
+                      item.chat_info
+                    {
+                      match item.chat_item.chat_dir.direction_type {
+                        DirectionType::DirectSnd => continue,
+                        _ => {}
+                      }
+
+                      if let Some(content) = utils::extract_text_content(item.chat_item.content) {
+                        let number: Result<f64, _> = content.parse();
+                        let reply = match number {
+                          Ok(n) => format!("{} * {} = {}", n, n, n * n),
+                          Err(_) => "this is not a number".to_string(),
+                        };
+
+                        let _ = client
+                          .send_text(
+                            muchat_providers::chat::response::ChatInfoType::Direct,
+                            c_info_direct.contact.contact_id.clone(),
+                            reply,
+                          )
+                          .await;
+                      }
+                    }
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            Err(_) => {}
+                        }
+                    }
+                }
+            }
+        }
+    })
 }
 
 fn home<'a>(app: &Application) -> Element<Event> {
