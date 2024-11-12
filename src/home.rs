@@ -1,13 +1,26 @@
-use iced::padding::left;
-use iced::widget::text::Style as TextStyle;
-use iced::widget::text_editor::Style;
-use iced::widget::{
-    column, container, horizontal_rule, mouse_area, row, scrollable, text, text_editor,
-    vertical_rule,
+use iced::{
+    color,
+    padding::left,
+    widget::{
+        column,
+        container,
+        horizontal_rule,
+        mouse_area,
+        row,
+        scrollable,
+        text,
+        text::Style as TextStyle,
+        text_editor,
+        text_editor::Style,
+        vertical_rule,
+    },
+    Alignment::Center,
+    Border,
+    Element,
+    Font,
+    Length::{self, Fill},
+    Padding,
 };
-use iced::Alignment::Center;
-use iced::Length::{self, Fill};
-use iced::{color, Border, Element, Font, Padding};
 
 #[derive(Default)]
 struct ChatInfo {
