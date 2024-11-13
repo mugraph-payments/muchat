@@ -1,18 +1,18 @@
-import './App.css';
 import { useWebSocket } from './useWebSocket';
+import classes from './chat.module.css';
 
 function App() {
   const client = useWebSocket();
 
   return (
-    <main id="chatBody">
+    <main className={classes.container}>
       <div>
-        <div>{client.isConnected ? 'Connected' : 'Disconnected'}</div>
+        <div className={`${classes.status} ${client.isConnected ? classes.connected : classes.disconnected }`}>{client.isConnected ? 'Connected' : 'Disconnected'}</div>
       </div>
 
-      <div id="messages">
-        {client.messages.map((msg) => {
-          return <div>{JSON.stringify(msg)}</div>;
+      <div id="messages" className={classes.chatBody}>
+        {client.messages.map((msg, index) => {
+          return <div className={classes.chatItem} key={index}>{JSON.stringify(msg)}</div>;
         })}
       </div>
     </main>

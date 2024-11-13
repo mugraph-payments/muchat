@@ -3,94 +3,112 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // when using `"withGlobalTauri": true`, you may use
 // const WebSocket = window.__TAURI__.websocket;
 
-export async function connectWebsocket(): Promise<WebSocket> {
+export async function connectWebsocket(messageHandler: (msg: Message) => void | Promise<void>): Promise<WebSocket> {
   const ws = await WebSocket.connect('ws://localhost:5225');
+  ws.addListener(messageHandler);
   return ws;
+}
+
+type CommandPayload = {
+  corrId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resp: any;
 }
 
 export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const webSocketClient = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<CommandPayload[]>([]);
   const firstRun = useRef(true);
+
+  const disconnect = useCallback(async () => {
+    await webSocketClient.current?.disconnect();
+    setIsConnected(false);
+  }, []);
+
   const handleServerMessages = useCallback((message: Message) => {
-    console.log(message);
     switch (message.type) {
       case 'Text': {
         const data = JSON.parse(message.data);
-        setMessages((msgs) => {
-          msgs.push(data);
-          return msgs;
-        });
+        setMessages((msgs) => [...msgs, data]);
         break;
       }
-      case 'Binary':
-        break;
       case 'Close':
+        disconnect();
         break;
       default:
         return;
     }
-  }, []);
+  }, [disconnect,]);
 
-  const setAutoAccept = async (value: boolean) => {
+  const setAutoAccept = async (value: boolean): Promise<string | null> => {
     if (!webSocketClient.current) {
-      return;
+      return null;
     }
+    const corrId = Date.now().toString();
     await webSocketClient.current.send(JSON.stringify({
       cmd: `/auto_accept ${value ? 'on' : 'false'}`,
-      corrId: Date.now().toString(),
+      corrId,
     }));
+    return corrId;
   }
 
-  const createAddress = async () => {
+  const createAddress = async (): Promise<string | null> => {
     if (!webSocketClient.current) {
-      return;
+      return null;
     }
+    const corrId = Date.now().toString();
     await webSocketClient.current.send(JSON.stringify({
       cmd: `/address`,
-      corrId: Date.now().toString(),
+      corrId,
     }));
+    return corrId;
   }
 
-  const getActiveUser = async () => {
+  const getActiveUser = async (): Promise<string | null> => {
     if (!webSocketClient.current) {
-      return;
+      return null;
     }
+    const corrId = Date.now().toString();
     await webSocketClient.current.send(JSON.stringify({
       cmd: `/u`,
-      corrId: Date.now().toString(),
+      corrId,
     }));
+    return corrId;
   }
 
+  const initChatClient = useCallback(async () => {
+    // await createAddress();
+    await getActiveUser();
+    await setAutoAccept(true);
+  }, []);
+
   useEffect(() => {
+    if (!firstRun.current) return;
+    firstRun.current = false;
+
     const connect = async () => {
-      webSocketClient.current = await connectWebsocket();
-      webSocketClient.current.addListener(handleServerMessages);
-      // await createAddress();
-      await getActiveUser();
-      await setAutoAccept(true);
+      webSocketClient.current = await connectWebsocket(handleServerMessages);
       setIsConnected(true);
+      initChatClient();
     };
 
-    const disconnect = async () => {
-      await webSocketClient.current?.disconnect();
-    }
-
     if (firstRun) {
+      console.log("🟩 Connecting...")
       connect();
     }
 
-    firstRun.current = false;
     return () => {
-      firstRun.current = true;
+      console.log("🟥 Disconnecting")
       disconnect();
     }
-  }, [handleServerMessages]);
-
+  }, [disconnect, handleServerMessages, isConnected, initChatClient]);
 
   return {
     isConnected,
     messages,
+    setAutoAccept,
+    createAddress,
+    getActiveUser
   }
 }
