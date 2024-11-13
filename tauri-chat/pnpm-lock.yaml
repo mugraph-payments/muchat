@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@eslint/js': ^9.13.0
   '@tauri-apps/cli': ^2.1.0
+  '@tauri-apps/plugin-websocket': ~2
   '@types/react': ^18.3.12
   '@types/react-dom': ^18.3.1
   '@vitejs/plugin-react': ^4.3.3
@@ -17,6 +18,7 @@ specifiers:
   vite: ^5.4.10
 
 dependencies:
+  '@tauri-apps/plugin-websocket': 2.0.0
   react: 18.3.1
   react-dom: 18.3.1_react@18.3.1
 
@@ -710,6 +712,10 @@ packages:
     dev: true
     optional: true
 
+  /@tauri-apps/api/2.1.1:
+    resolution: {integrity: sha512-fzUfFFKo4lknXGJq8qrCidkUcKcH2UHhfaaCNt4GzgzGaW2iS26uFOg4tS3H4P8D6ZEeUxtiD5z0nwFF0UN30A==}
+    dev: false
+
   /@tauri-apps/cli-darwin-arm64/2.1.0:
     resolution: {integrity: sha512-ESc6J6CE8hl1yKH2vJ+ALF+thq4Be+DM1mvmTyUCQObvezNCNhzfS6abIUd3ou4x5RGH51ouiANeT3wekU6dCw==}
     engines: {node: '>= 10'}
@@ -816,6 +822,12 @@ packages:
       '@tauri-apps/cli-win32-ia32-msvc': 2.1.0
       '@tauri-apps/cli-win32-x64-msvc': 2.1.0
     dev: true
+
+  /@tauri-apps/plugin-websocket/2.0.0:
+    resolution: {integrity: sha512-O2qRxZCljd4g+ceJhW7LfgQr+fg0fBBiAaLiMopoKL6TXKMnhBHOenp4nZ5/MoVTr77OQIDNO6Jp/c1YwiRVtQ==}
+    dependencies:
+      '@tauri-apps/api': 2.1.1
+    dev: false
 
   /@types/babel__core/7.20.5:
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}

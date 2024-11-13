@@ -23,3 +23,8 @@ serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
 tauri = { version = "2.1.0", features = [] }
 tauri-plugin-log = "2.0.0-rc"
+futures = "0.3.30"
+tokio = { version = "1.41.1", features = ["full"] }
+tokio-tungstenite = "0.24"
+muchat-providers = { path = "../../providers/" }
+tauri-plugin-websocket = "2"
