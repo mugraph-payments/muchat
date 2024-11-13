@@ -3,12 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // when using `"withGlobalTauri": true`, you may use
 // const WebSocket = window.__TAURI__.websocket;
 
-export async function connectWebsocket(messageHandler: (msg: Message) => void | Promise<void>): Promise<WebSocket> {
-  const ws = await WebSocket.connect('ws://localhost:5225');
-  ws.addListener(messageHandler);
-  return ws;
-}
-
 type CommandPayload = {
   corrId?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +33,13 @@ export function useWebSocket() {
       default:
         return;
     }
-  }, [disconnect,]);
+  }, [disconnect]);
+
+  const connectWebsocket = useCallback(async (): Promise<WebSocket> => {
+    const ws = await WebSocket.connect('ws://localhost:5225');
+    ws.addListener(handleServerMessages);
+    return ws;
+  }, [handleServerMessages])
 
   const setAutoAccept = async (value: boolean): Promise<string | null> => {
     if (!webSocketClient.current) {
@@ -83,26 +83,32 @@ export function useWebSocket() {
     await setAutoAccept(true);
   }, []);
 
+  const connect = useCallback(async () => {
+    webSocketClient.current = await connectWebsocket();
+    setIsConnected(true);
+    initChatClient();
+  }, [
+    initChatClient,
+    setIsConnected,
+    connectWebsocket
+  ]);
+
   useEffect(() => {
     if (!firstRun.current) return;
     firstRun.current = false;
 
-    const connect = async () => {
-      webSocketClient.current = await connectWebsocket(handleServerMessages);
-      setIsConnected(true);
-      initChatClient();
-    };
-
-    if (firstRun) {
-      console.log("🟩 Connecting...")
-      connect();
-    }
+    console.log("🟩 Connecting...");
+    connect();
 
     return () => {
       console.log("🟥 Disconnecting")
       disconnect();
     }
-  }, [disconnect, handleServerMessages, isConnected, initChatClient]);
+  }, [
+    connect,
+    disconnect,
+    isConnected
+  ]);
 
   return {
     isConnected,
