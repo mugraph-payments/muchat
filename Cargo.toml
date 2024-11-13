@@ -1,5 +1,5 @@
 [workspace]
-members = ["providers"]
+members = ["providers", "tauri-chat/src-tauri"]
 
 [package]
 name = "muchat"
