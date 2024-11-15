@@ -26,7 +26,7 @@ html, body {
   box-sizing: border-box;
 }
 
-#root {
+#root,main {
   position: relative;
   height: 100%;
 }
