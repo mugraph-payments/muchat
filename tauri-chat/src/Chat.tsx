@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import classes from './chat.module.css';
 import { useWebSocket } from './useWebSocket';
+import ContactList from './components/ContactList/ContactList';
 
-const Chat = () => {
-  const client = useWebSocket();
+type ChatProps = {
+  chatClient: ReturnType<typeof useWebSocket>;
+};
+
+const Chat = ({ chatClient }: ChatProps) => {
   const [message, setMessage] = useState('');
 
   const handleSendMessage = () => {
@@ -21,22 +25,21 @@ const Chat = () => {
     }
   };
 
-  console.log(client.contacts);
-
   return (
     <div className={classes.container}>
       <div>
         <div
           className={`${classes.status} ${
-            client.isConnected ? classes.connected : classes.disconnected
+            chatClient.isConnected ? classes.connected : classes.disconnected
           }`}
         >
-          {client.isConnected ? 'Connected' : 'Disconnected'}
+          {chatClient.isConnected ? 'Connected' : 'Disconnected'}
         </div>
+        <ContactList chatClient={chatClient} />
       </div>
 
       <div id="messages" className={classes.chatBody}>
-        {client.messages.map((msg, index) => {
+        {chatClient.messages.map((msg, index) => {
           return (
             <div className={classes.chatItem} key={index}>
               <span style={{ display: 'block' }}>{msg.resp.type}</span>
@@ -44,7 +47,9 @@ const Chat = () => {
                 <span>
                   {msg.resp.chatItems.map((item, index) =>
                     item.chatItem.content.type === 'rcvMsgContent' ? (
-                      <div key={index}>{item.chatItem.content.msgContent.text}</div>
+                      <div key={index}>
+                        {item.chatItem.content.msgContent.text}
+                      </div>
                     ) : (
                       <div key={index}>Other message type</div>
                     ),
@@ -57,24 +62,6 @@ const Chat = () => {
             </div>
           );
         })}
-      </div>
-
-      <div>
-        {
-          client.contacts.map((client) => {
-            return (
-              <div>
-                ContactId: {
-                  client.contactId
-                }
-
-                DisplayName: {
-                  client.localDisplayName
-                }
-                </div>
-            )
-          })
-        }
       </div>
       <div className={classes.messageBox}>
         <input

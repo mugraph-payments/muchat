@@ -1,0 +1,19 @@
+
+
+.container {
+  padding: 1rem;
+}
+
+.body {
+  display: flex;
+  gap: 1rem;
+}
+
+.item {
+  outline: none;
+  border: none;
+  border-radius: 4px;
+  padding: .5rem;
+  background: black;
+}
+
