@@ -1,0 +1,11 @@
+node_modules
+public
+build
+dist
+*-lock.json
+*-lock.yaml
+
+flake.*
+
+.github/*
+.direnv
