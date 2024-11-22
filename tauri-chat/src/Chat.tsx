@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import classes from './chat.module.css';
-import { useWebSocket } from './useWebSocket';
 import ContactList from './components/ContactList/ContactList';
+import useChatContext from './useChatContext';
+import { useWebSocket } from './useWebSocket';
 
-type ChatProps = {
-  chatClient: ReturnType<typeof useWebSocket>;
-};
-
-const Chat = ({ chatClient }: ChatProps) => {
+const Chat = () => {
+  useWebSocket();
+  const { messages, isConnected } = useChatContext();
   const [message, setMessage] = useState('');
 
   const handleSendMessage = () => {
@@ -30,16 +29,16 @@ const Chat = ({ chatClient }: ChatProps) => {
       <div>
         <div
           className={`${classes.status} ${
-            chatClient.isConnected ? classes.connected : classes.disconnected
+            isConnected ? classes.connected : classes.disconnected
           }`}
         >
-          {chatClient.isConnected ? 'Connected' : 'Disconnected'}
+          {isConnected ? 'Connected' : 'Disconnected'}
         </div>
-        <ContactList chatClient={chatClient} />
+        <ContactList />
       </div>
 
       <div id="messages" className={classes.chatBody}>
-        {chatClient.messages.map((msg, index) => {
+        {messages.map((msg, index) => {
           return (
             <div className={classes.chatItem} key={index}>
               <span style={{ display: 'block' }}>{msg.resp.type}</span>

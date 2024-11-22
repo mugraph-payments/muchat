@@ -1,7 +1,8 @@
 import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AChatItem, ChatInfoType, ChatItem, ChatResponse, Contact } from './lib/response';
+import { useCallback, useEffect, useRef } from 'react';
+import { ChatResponse } from './lib/response';
 import { ChatCommand, ChatType, cmdString, ComposedMessage } from './lib/command';
+import useChatContext from './useChatContext';
 // when using `"withGlobalTauri": true`, you may use
 // const WebSocket = window.__TAURI__.websocket;
 
@@ -16,50 +17,20 @@ export type ClientResponseData = {
 
 export function useWebSocket() {
   const corrId = useRef(0);
-  const [isConnected, setIsConnected] = useState(false);
   const webSocketClient = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<ServerResponse[]>([]);
-  const [contacts, setContacts] = useState<Map<number, Contact>>(new Map())
-  const [directChats, setDirectChats] = useState<Map<number, ChatItem[]>>(new Map());
   const firstRun = useRef(true);
-
-  const handleNewChatMessages = useCallback((newMessages: AChatItem[]) => {
-    setContacts((prevContacts) => {
-      const updatedContacts = new Map(prevContacts);
-      newMessages.forEach((msg) => {
-        if (msg.chatInfo.type === ChatInfoType.Direct) {
-          const contact = msg.chatInfo.contact;
-          if (!updatedContacts.has(contact.contactId)) {
-            updatedContacts.set(contact.contactId, contact);
-          }
-        }
-      });
-      return updatedContacts;
-    });
-
-    setDirectChats((prevDirectChats) => {
-      const updatedDirectChats = new Map(prevDirectChats);
-      newMessages.forEach((msg) => {
-        if (msg.chatInfo.type === ChatInfoType.Direct) {
-          const contact = msg.chatInfo.contact;
-          const currentMessages = updatedDirectChats.get(contact.contactId) ?? [];
-          updatedDirectChats.set(contact.contactId, [...currentMessages, msg.chatItem]);
-        }
-      });
-      return updatedDirectChats;
-    });
-  }, []);
+  const { setIsConnected, addMessage, setDirectChats } = useChatContext();
 
   const disconnect = useCallback(async () => {
     await webSocketClient.current?.disconnect();
     setIsConnected(false);
-  }, []);
+  }, [setIsConnected]);
 
   const serverResponseReducer = useCallback((data: ServerResponse) => {
-    setMessages((msgs) => [...msgs, data]);
+    addMessage(data);
     switch (data.resp.type) {
       case 'newChatItems': {
-        handleNewChatMessages(data.resp.chatItems);
+        setDirectChats(data.resp.chatItems);
         break;
       }
       default:
@@ -67,7 +38,7 @@ export function useWebSocket() {
           break;
         }
     }
-  }, [handleNewChatMessages])
+  }, [addMessage, setDirectChats])
 
   const handleServerMessages = useCallback((message: Message) => {
     switch (message.type) {
@@ -178,10 +149,6 @@ export function useWebSocket() {
   };
 
   return {
-    messages,
-    contacts,
-    directChats,
-    isConnected,
     setAutoAccept,
     createAddress,
     getActiveUser,

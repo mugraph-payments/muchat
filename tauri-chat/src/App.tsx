@@ -1,11 +1,9 @@
 import Chat from './Chat';
-import { useWebSocket } from './useWebSocket';
 
 function App() {
-  const webSocketClient = useWebSocket();
   return (
     <main>
-      <Chat chatClient={webSocketClient} />
+      <Chat />
     </main>
   );
 }

@@ -1,22 +1,16 @@
-import { useMemo } from 'react';
 import classes from './ContactList.module.css';
-import { useWebSocket } from '../../useWebSocket';
+import useChatContext from '../../useChatContext';
 
-function ContactList({
-  chatClient,
-}: {
-  chatClient: ReturnType<typeof useWebSocket>;
-}) {
-  const contacts = useMemo(() => chatClient.directChats.keys(), [chatClient]);
-
+function ContactList() {
+  const { contacts } = useChatContext();
   return (
     <div className={classes.container}>
       <h3>Contact List</h3>
       <div className={classes.body}>
-        {[...contacts].map((c, index) => {
+        {[...contacts].map(([cId], index) => {
           return (
             <button key={index} className={classes.item}>
-              {c}
+              {cId}
             </button>
           );
         })}
