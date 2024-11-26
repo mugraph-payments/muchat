@@ -1,12 +1,23 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import classes from './chat.module.css';
 import ContactList from './components/ContactList/ContactList';
 import useChatContext from './useChatContext';
-import { useWebSocket } from './useWebSocket';
+import { ServerResponse, useWebSocket } from './useWebSocket';
+import { ChatItem } from './lib/response';
 
 const Chat = () => {
   useWebSocket();
-  const { messages, isConnected } = useChatContext();
+  const {
+    messages: allMessages,
+    isConnected,
+    directChats,
+    selectedChatId,
+  } = useChatContext();
+  const selectedChat = useMemo(
+    () => (selectedChatId === -1 ? [] : directChats.get(selectedChatId) ?? []),
+    [selectedChatId, directChats],
+  );
+
   const [message, setMessage] = useState('');
 
   const handleSendMessage = () => {
@@ -24,6 +35,35 @@ const Chat = () => {
     }
   };
 
+  const DebugChat = (messages: ServerResponse[]) => {
+    return messages.map((msg, index) => {
+      return (
+        <div className={classes.chatItem} key={index}>
+          <span style={{ display: 'block' }}>{msg.resp.type}</span>
+          {msg.resp.type !== 'newChatItems' && (
+            <span>{JSON.stringify(msg)}</span>
+          )}
+        </div>
+      );
+    });
+  };
+
+  const DirectChat = (messages: ChatItem[]) => {
+    return messages.map((msg, index) => {
+      return (
+        <>
+          <span>
+            {msg.content.type === 'rcvMsgContent' ? (
+              <div key={index}>{msg.content.msgContent.text}</div>
+            ) : (
+              <div key={index}>Other message type</div>
+            )}
+          </span>
+        </>
+      );
+    });
+  };
+
   return (
     <div className={classes.container}>
       <div>
@@ -38,29 +78,9 @@ const Chat = () => {
       </div>
 
       <div id="messages" className={classes.chatBody}>
-        {messages.map((msg, index) => {
-          return (
-            <div className={classes.chatItem} key={index}>
-              <span style={{ display: 'block' }}>{msg.resp.type}</span>
-              {msg.resp.type === 'newChatItems' && (
-                <span>
-                  {msg.resp.chatItems.map((item, index) =>
-                    item.chatItem.content.type === 'rcvMsgContent' ? (
-                      <div key={index}>
-                        {item.chatItem.content.msgContent.text}
-                      </div>
-                    ) : (
-                      <div key={index}>Other message type</div>
-                    ),
-                  )}
-                </span>
-              )}
-              {msg.resp.type !== 'newChatItems' && (
-                <span>{JSON.stringify(msg)}</span>
-              )}
-            </div>
-          );
-        })}
+        {selectedChatId === -1
+          ? DebugChat(allMessages)
+          : DirectChat(selectedChat)}
       </div>
       <div className={classes.messageBox}>
         <input

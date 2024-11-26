@@ -12,6 +12,8 @@ interface ChatContextType {
   setContacts: (c: Contact) => void;
   directChats: Map<number, ChatItem[]>;
   setDirectChats: (chats: AChatItem[]) => void;
+  selectedChatId: number;
+  setSelectedChatId: (id: number) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -23,12 +25,15 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [directChats, setDirectChats] = useState<Map<number, ChatItem[]>>(
     new Map(),
   );
+  const [selectedChatId, setSelectedChatId] = useState(-1);
 
   return (
     <ChatContext.Provider
       value={{
         isConnected,
         setIsConnected,
+        selectedChatId,
+        setSelectedChatId,
         messages,
         setMessages,
         addMessage: (msg) => setMessages((msgs) => [...msgs, msg]),
