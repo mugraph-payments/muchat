@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
-import classes from './chat.module.css';
-import ContactList from './components/ContactList/ContactList';
-import useChatContext from './useChatContext';
-import { ServerResponse, useWebSocket } from './useWebSocket';
-import { ChatItem, Contact } from './lib/response';
-import { ChatType } from './lib/command';
+import { useMemo, useState } from "react";
+import classes from "./chat.module.css";
+import ContactList from "./components/ContactList/ContactList";
+import useChatContext from "./useChatContext";
+import { ServerResponse, useWebSocket } from "./useWebSocket";
+import { ChatItem, Contact } from "./lib/response";
+import { ChatType } from "./lib/command";
 
 const Chat = () => {
   const client = useWebSocket();
@@ -17,7 +17,8 @@ const Chat = () => {
     selectedChatId,
   } = useChatContext();
   const selectedChat = useMemo(
-    () => (selectedChatId === -1 ? [] : directChats.get(selectedChatId) ?? []),
+    () =>
+      selectedChatId === -1 ? [] : (directChats.get(selectedChatId) ?? []),
     [selectedChatId, directChats],
   );
   const selectedContact = useMemo(
@@ -25,26 +26,26 @@ const Chat = () => {
     [selectedChatId, contacts],
   );
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   const handleSendMessage = () => {
-    if (message.trim() !== '') {
+    if (message.trim() !== "") {
       client.sendMessages(ChatType.Direct, selectedChatId, [
         {
           msgContent: {
-            type: 'text',
+            type: "text",
             text: message,
           },
         },
       ]);
-      setMessage('');
+      setMessage("");
     }
   };
 
   const handleKeyPress: React.KeyboardEventHandler<HTMLInputElement> = (
     event,
   ) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       handleSendMessage();
     }
   };
@@ -53,7 +54,7 @@ const Chat = () => {
     return messages.map((msg, index) => {
       return (
         <div className={classes.chatItem} key={index}>
-          <span style={{ display: 'block' }}>{msg.resp.type}</span>
+          <span style={{ display: "block" }}>{msg.resp.type}</span>
           <span>{JSON.stringify(msg)}</span>
         </div>
       );
@@ -65,13 +66,13 @@ const Chat = () => {
       return (
         <>
           <span>
-            {msg.content.type === 'rcvMsgContent' && (
+            {msg.content.type === "rcvMsgContent" && (
               <div key={index}>
                 <span>{contact?.localDisplayName}</span>
                 <div>{msg.content.msgContent.text}</div>
               </div>
             )}
-            {msg.content.type === 'sndMsgContent' && (
+            {msg.content.type === "sndMsgContent" && (
               <div key={index}>
                 <span>{activeUser?.localDisplayName}</span>
                 <div>{msg.content.msgContent.text}</div>
@@ -91,7 +92,7 @@ const Chat = () => {
             isConnected ? classes.connected : classes.disconnected
           }`}
         >
-          {isConnected ? 'Connected' : 'Disconnected'}
+          {isConnected ? "Connected" : "Disconnected"}
         </div>
         <ContactList />
       </div>

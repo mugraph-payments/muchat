@@ -1,5 +1,5 @@
-import classes from './ContactList.module.css';
-import useChatContext from '../../useChatContext';
+import classes from "./ContactList.module.css";
+import useChatContext from "../../useChatContext";
 
 function ContactList() {
   const { contacts, setSelectedChatId, selectedChatId } = useChatContext();
