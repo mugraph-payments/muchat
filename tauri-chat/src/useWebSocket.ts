@@ -1,6 +1,6 @@
 import WebSocket, { Message } from "@tauri-apps/plugin-websocket";
 import { useCallback, useEffect, useRef } from "react";
-import { ChatResponse } from "./lib/response";
+import { ChatResponse, CRActiveUser, CRContactsList } from "./lib/response";
 import {
   ChatCommand,
   ChatType,
@@ -24,7 +24,16 @@ export function useWebSocket() {
   const corrId = useRef(0);
   const webSocketClient = useRef<WebSocket | null>(null);
   const firstRun = useRef(true);
-  const { setIsConnected, addMessage, setDirectChats } = useChatContext();
+  const {
+    setIsConnected,
+    addMessage,
+    setDirectChats,
+    setActiveUser,
+    setContacts,
+  } = useChatContext();
+  const callbacks = useRef<Map<string, (data: ServerResponse) => void>>(
+    new Map(),
+  );
 
   const disconnect = useCallback(async () => {
     await webSocketClient.current?.disconnect();
@@ -53,6 +62,11 @@ export function useWebSocket() {
         case "Text": {
           const data = JSON.parse(message.data) as ServerResponse;
           serverResponseReducer(data);
+          const corrId = data.corrId;
+          if (corrId) {
+            const callback = callbacks.current.get(corrId);
+            callback?.(data);
+          }
           break;
         }
         case "Close":
@@ -145,11 +159,45 @@ export function useWebSocket() {
     [sendChatCommand],
   );
 
+  const commandSync = useCallback(
+    (corrId: string): Promise<ServerResponse["resp"]> => {
+      return new Promise((resolve, reject) => {
+        if (!corrId) reject("No corrId");
+        callbacks.current.set(corrId, (data) => {
+          resolve(data.resp);
+        });
+      });
+    },
+    [],
+  );
+
   const initChatClient = useCallback(async () => {
     await createAddress();
-    await getActiveUser();
+    const activeUserData = (await commandSync(
+      (await getActiveUser()) ?? "",
+    )) as CRActiveUser;
+    setActiveUser(activeUserData.user);
+
+    if (!activeUserData.user) return;
+    const contactsData = (await commandSync(
+      (await listContacts(activeUserData.user.userId.toString())).corrId ?? "",
+    )) as CRContactsList;
+    if (contactsData) {
+      const newContacts = new Map();
+      contactsData.contacts.forEach((c) => newContacts.set(c.contactId, c));
+      setContacts(newContacts);
+    }
+
     await setAutoAccept(true);
-  }, [createAddress, getActiveUser, setAutoAccept]);
+  }, [
+    createAddress,
+    getActiveUser,
+    setAutoAccept,
+    commandSync,
+    listContacts,
+    setActiveUser,
+    setContacts,
+  ]);
 
   const connect = useCallback(async () => {
     webSocketClient.current = await connectWebsocket();
@@ -179,6 +227,7 @@ export function useWebSocket() {
   };
 
   return {
+    commandSync,
     setAutoAccept,
     createAddress,
     getActiveUser,

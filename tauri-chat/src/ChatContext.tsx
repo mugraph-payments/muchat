@@ -1,12 +1,10 @@
-import { createContext, useState, ReactNode, useMemo, useEffect } from "react";
+import { createContext, useState, ReactNode } from "react";
 import { ServerResponse } from "./useWebSocket";
 import {
   AChatItem,
   ChatInfoType,
   ChatItem,
   Contact,
-  CRActiveUser,
-  CRContactsList,
   User,
 } from "./lib/response";
 
@@ -17,13 +15,14 @@ interface ChatContextType {
   setMessages: (msgs: ServerResponse[]) => void;
   addMessage: (msg: ServerResponse) => void;
   contacts: Map<number, Contact>;
-  setContacts: (c: Contact) => void;
+  setContacts: (contacts: Map<number, Contact>) => void;
+  setContact: (c: Contact) => void;
   directChats: Map<number, ChatItem[]>;
   setDirectChats: (chats: AChatItem[]) => void;
   selectedChatId: number;
   setSelectedChatId: (id: number) => void;
   activeUser: User | null;
-  // setActiveUser: (user: User | null) => void;
+  setActiveUser: (user: User | null) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -36,35 +35,14 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
     new Map(),
   );
   const [selectedChatId, setSelectedChatId] = useState(-1);
-  // const [activeUser, setActiveUser] = useState<null | User>(null);
-  // FIXME: this is awful, but it should work for now
-  const activeUser = useMemo<User | null>(
-    () =>
-      (
-        messages.find((data) => data.resp.type === "activeUser")
-          ?.resp as CRActiveUser
-      )?.user ?? null,
-    [messages],
-  );
-
-  useEffect(() => {
-    // Update contacts
-    const contactList = messages.find(
-      (data) => data.resp.type === "contactsList",
-    )?.resp as CRContactsList | undefined;
-    if (contactList) {
-      const newContacts = new Map();
-      contactList.contacts.forEach((c) => newContacts.set(c.contactId, c));
-      setContacts(newContacts);
-    }
-  }, [messages]);
+  const [activeUser, setActiveUser] = useState<null | User>(null);
 
   return (
     <ChatContext.Provider
       value={{
         isConnected,
         activeUser,
-        // setActiveUser,
+        setActiveUser,
         setIsConnected,
         selectedChatId,
         setSelectedChatId,
@@ -72,12 +50,13 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
         setMessages,
         addMessage: (msg) => setMessages((msgs) => [...msgs, msg]),
         contacts,
-        setContacts: (c) =>
+        setContact: (c) =>
           setContacts((curContacts) => {
             const newContacts = new Map(curContacts);
             newContacts.set(c.contactId, c);
             return newContacts;
           }),
+        setContacts,
         directChats,
         setDirectChats: (chats) =>
           setDirectChats((curChats) => {
