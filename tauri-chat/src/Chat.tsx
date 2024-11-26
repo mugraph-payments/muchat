@@ -5,6 +5,7 @@ import useChatContext from "./useChatContext";
 import { ServerResponse, useWebSocket } from "./useWebSocket";
 import { ChatItem, Contact } from "./lib/response";
 import { ChatType } from "./lib/command";
+import CommandPanel from "./components/ContactList/CommandPanel/CommandPanel";
 
 const Chat = () => {
   const client = useWebSocket();
@@ -64,22 +65,20 @@ const Chat = () => {
   const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
     return messages.map((msg, index) => {
       return (
-        <>
-          <span>
-            {msg.content.type === "rcvMsgContent" && (
-              <div key={index}>
-                <span>{contact?.localDisplayName}</span>
-                <div>{msg.content.msgContent.text}</div>
-              </div>
-            )}
-            {msg.content.type === "sndMsgContent" && (
-              <div key={index}>
-                <span>{activeUser?.localDisplayName}</span>
-                <div>{msg.content.msgContent.text}</div>
-              </div>
-            )}
-          </span>
-        </>
+        <div key={index}>
+          {msg.content.type === "rcvMsgContent" && (
+            <div key={index}>
+              <span>{contact?.localDisplayName}</span>
+              <div>{msg.content.msgContent.text}</div>
+            </div>
+          )}
+          {msg.content.type === "sndMsgContent" && (
+            <div key={index}>
+              <span>{activeUser?.localDisplayName}</span>
+              <div>{msg.content.msgContent.text}</div>
+            </div>
+          )}
+        </div>
       );
     });
   };
@@ -87,6 +86,7 @@ const Chat = () => {
   return (
     <div className={classes.container}>
       <div>
+        <CommandPanel client={client} />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected

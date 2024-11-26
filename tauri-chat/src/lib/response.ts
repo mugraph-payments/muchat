@@ -98,7 +98,8 @@ export type ChatResponse =
   | CRContactConnectionDeleted
   | CRMessageError
   | CRChatCmdError
-  | CRChatError;
+  | CRChatError
+  | CRContactsList;
 
 // not included
 // CRChatItemDeletedNotFound
@@ -197,10 +198,17 @@ type ChatResponseTag =
   | "contactConnectionDeleted"
   | "messageError"
   | "chatCmdError"
-  | "chatError";
+  | "chatError"
+  | "contactsList";
 
 interface CR {
   type: ChatResponseTag;
+}
+
+export interface CRContactsList extends CR {
+  type: "contactsList";
+  user: User;
+  contacts: Contact[];
 }
 
 export interface CRActiveUser extends CR {

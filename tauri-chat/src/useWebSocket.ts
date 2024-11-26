@@ -135,19 +135,21 @@ export function useWebSocket() {
     });
   };
 
-  const listContacts = useCallback(async () => {
-    return await sendChatCommand({
-      type: "listContacts",
-    } as unknown as ChatCommand);
-  }, [sendChatCommand]);
+  const listContacts = useCallback(
+    async (userId: string) => {
+      return await sendChatCommand({
+        type: "listContacts",
+        userId,
+      });
+    },
+    [sendChatCommand],
+  );
 
   const initChatClient = useCallback(async () => {
     await createAddress();
     await getActiveUser();
     await setAutoAccept(true);
-    // const res = await listUsers();
-    await listContacts();
-  }, [createAddress, getActiveUser, setAutoAccept, listContacts]);
+  }, [createAddress, getActiveUser, setAutoAccept]);
 
   const connect = useCallback(async () => {
     webSocketClient.current = await connectWebsocket();

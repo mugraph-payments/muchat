@@ -1,4 +1,4 @@
-import { createContext, useState, ReactNode, useMemo } from "react";
+import { createContext, useState, ReactNode, useMemo, useEffect } from "react";
 import { ServerResponse } from "./useWebSocket";
 import {
   AChatItem,
@@ -6,6 +6,7 @@ import {
   ChatItem,
   Contact,
   CRActiveUser,
+  CRContactsList,
   User,
 } from "./lib/response";
 
@@ -45,6 +46,18 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
       )?.user ?? null,
     [messages],
   );
+
+  useEffect(() => {
+    // Update contacts
+    const contactList = messages.find(
+      (data) => data.resp.type === "contactsList",
+    )?.resp as CRContactsList | undefined;
+    if (contactList) {
+      const newContacts = new Map();
+      contactList.contacts.forEach((c) => newContacts.set(c.contactId, c));
+      setContacts(newContacts);
+    }
+  }, [messages]);
 
   return (
     <ChatContext.Provider
