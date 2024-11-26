@@ -3,11 +3,14 @@ import classes from './chat.module.css';
 import ContactList from './components/ContactList/ContactList';
 import useChatContext from './useChatContext';
 import { ServerResponse, useWebSocket } from './useWebSocket';
-import { ChatItem } from './lib/response';
+import { ChatItem, Contact } from './lib/response';
+import { ChatType } from './lib/command';
 
 const Chat = () => {
-  useWebSocket();
+  const client = useWebSocket();
   const {
+    activeUser,
+    contacts,
     messages: allMessages,
     isConnected,
     directChats,
@@ -17,12 +20,23 @@ const Chat = () => {
     () => (selectedChatId === -1 ? [] : directChats.get(selectedChatId) ?? []),
     [selectedChatId, directChats],
   );
+  const selectedContact = useMemo(
+    () => (selectedChatId === -1 ? null : contacts.get(selectedChatId)),
+    [selectedChatId, contacts],
+  );
 
   const [message, setMessage] = useState('');
 
   const handleSendMessage = () => {
     if (message.trim() !== '') {
-      // client.sendMessages()
+      client.sendMessages(ChatType.Direct, selectedChatId, [
+        {
+          msgContent: {
+            type: 'text',
+            text: message,
+          },
+        },
+      ]);
       setMessage('');
     }
   };
@@ -40,23 +54,28 @@ const Chat = () => {
       return (
         <div className={classes.chatItem} key={index}>
           <span style={{ display: 'block' }}>{msg.resp.type}</span>
-          {msg.resp.type !== 'newChatItems' && (
-            <span>{JSON.stringify(msg)}</span>
-          )}
+          <span>{JSON.stringify(msg)}</span>
         </div>
       );
     });
   };
 
-  const DirectChat = (messages: ChatItem[]) => {
+  const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
     return messages.map((msg, index) => {
       return (
         <>
           <span>
-            {msg.content.type === 'rcvMsgContent' ? (
-              <div key={index}>{msg.content.msgContent.text}</div>
-            ) : (
-              <div key={index}>Other message type</div>
+            {msg.content.type === 'rcvMsgContent' && (
+              <div key={index}>
+                <span>{contact?.localDisplayName}</span>
+                <div>{msg.content.msgContent.text}</div>
+              </div>
+            )}
+            {msg.content.type === 'sndMsgContent' && (
+              <div key={index}>
+                <span>{activeUser?.localDisplayName}</span>
+                <div>{msg.content.msgContent.text}</div>
+              </div>
             )}
           </span>
         </>
@@ -80,7 +99,7 @@ const Chat = () => {
       <div id="messages" className={classes.chatBody}>
         {selectedChatId === -1
           ? DebugChat(allMessages)
-          : DirectChat(selectedChat)}
+          : DirectChat(selectedChat, selectedContact ?? null)}
       </div>
       <div className={classes.messageBox}>
         <input

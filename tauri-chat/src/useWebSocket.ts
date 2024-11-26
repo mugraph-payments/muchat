@@ -84,6 +84,7 @@ export function useWebSocket() {
       cmd: `/u`,
       corrId,
     }));
+
     return corrId;
   }, []);
 

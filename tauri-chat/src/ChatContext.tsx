@@ -1,6 +1,13 @@
-import { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode, useMemo } from 'react';
 import { ServerResponse } from './useWebSocket';
-import { AChatItem, ChatInfoType, ChatItem, Contact } from './lib/response';
+import {
+  AChatItem,
+  ChatInfoType,
+  ChatItem,
+  Contact,
+  CRActiveUser,
+  User,
+} from './lib/response';
 
 interface ChatContextType {
   isConnected: boolean;
@@ -14,6 +21,8 @@ interface ChatContextType {
   setDirectChats: (chats: AChatItem[]) => void;
   selectedChatId: number;
   setSelectedChatId: (id: number) => void;
+  activeUser: User | null;
+  // setActiveUser: (user: User | null) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -26,11 +35,23 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
     new Map(),
   );
   const [selectedChatId, setSelectedChatId] = useState(-1);
+  // const [activeUser, setActiveUser] = useState<null | User>(null);
+  // FIXME: this is awful, but it should work for now
+  const activeUser = useMemo<User | null>(
+    () =>
+      (
+        messages.find((data) => data.resp.type === 'activeUser')
+          ?.resp as CRActiveUser
+      )?.user ?? null,
+    [messages],
+  );
 
   return (
     <ChatContext.Provider
       value={{
         isConnected,
+        activeUser,
+        // setActiveUser,
         setIsConnected,
         selectedChatId,
         setSelectedChatId,
