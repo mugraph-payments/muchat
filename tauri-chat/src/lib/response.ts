@@ -9,6 +9,11 @@ import {
   ServerCfg,
 } from "./command";
 
+export type ServerResponse = {
+  corrId: string;
+  resp: ChatResponse;
+};
+
 export type ChatResponse =
   | CRActiveUser
   | CRUsersList
@@ -1028,7 +1033,7 @@ interface FileTransferMeta {
   cancelled: boolean;
 }
 
-interface UserContactLink {
+export interface UserContactLink {
   connReqContact: string;
   autoAccept?: AutoAccept;
 }

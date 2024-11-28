@@ -1,10 +1,11 @@
 import { createContext, useState, ReactNode } from "react";
-import { ServerResponse } from "./useWebSocket";
 import {
   AChatItem,
   ChatInfoType,
   ChatItem,
   Contact,
+  UserContactLink,
+  ServerResponse,
   User,
 } from "./lib/response";
 
@@ -23,6 +24,8 @@ interface ChatContextType {
   setSelectedChatId: (id: number) => void;
   activeUser: User | null;
   setActiveUser: (user: User | null) => void;
+  contactLink: UserContactLink | null;
+  setContactLink: (c: UserContactLink) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -36,6 +39,7 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
   );
   const [selectedChatId, setSelectedChatId] = useState(-1);
   const [activeUser, setActiveUser] = useState<null | User>(null);
+  const [contactLink, setContactLink] = useState<UserContactLink | null>(null);
 
   return (
     <ChatContext.Provider
@@ -43,6 +47,8 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
         isConnected,
         activeUser,
         setActiveUser,
+        contactLink,
+        setContactLink,
         setIsConnected,
         selectedChatId,
         setSelectedChatId,

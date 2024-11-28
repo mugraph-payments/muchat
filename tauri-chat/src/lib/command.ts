@@ -1,3 +1,8 @@
+export type ChatCommandMessage = {
+  corrId: string | null;
+  cmd: string;
+};
+
 export type ChatCommand =
   | ShowActiveUser
   | CreateActiveUser

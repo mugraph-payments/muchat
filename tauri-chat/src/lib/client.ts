@@ -1,8 +1,14 @@
 import WebSocket, { Message } from "@tauri-apps/plugin-websocket";
 import { HOST, PORT } from "../config";
-import { ServerResponse } from "../useWebSocket";
-import { ChatCommand, ChatType, cmdString, ComposedMessage } from "./command";
-import { ChatResponseTag } from "./response";
+import {
+  ChatCommand,
+  ChatCommandMessage,
+  ChatPagination,
+  ChatType,
+  cmdString,
+  ComposedMessage,
+} from "./command";
+import { ChatResponse, ChatResponseTag, ServerResponse } from "./response";
 
 export interface ChatServer {
   readonly host: string;
@@ -15,6 +21,9 @@ export const localServer: ChatServer = {
 };
 
 export type ChatClientEvents = "message" | ChatResponseTag;
+export type ChatClientMessageBundle = ChatCommandMessage & {
+  response?: ChatResponse;
+};
 
 export class ChatClient {
   private corrId = 0;
@@ -22,7 +31,7 @@ export class ChatClient {
   private ws: WebSocket;
   private callbacks: Map<string, ((data: ServerResponse) => void)[]> =
     new Map();
-  // private sentCommands: Map<string, ChatCommand> = new Map();
+  private sentCommands: Map<string, ChatClientMessageBundle> = new Map();
   public isConnected = false;
 
   private constructor(ws: WebSocket) {
@@ -79,15 +88,23 @@ export class ChatClient {
     command: ChatCommand,
   ): Promise<ServerResponse["resp"]> {
     const corrId = await this.sendChatCommandStr(cmdString(command));
-    return new Promise((resolve) => {
-      this.callbacks.set(corrId, [(data) => resolve(data.resp)]);
-    });
+    return this.waitCommandResponse(corrId);
   }
 
-  public async waitCommandResponse(corrId: string) {
-    return new Promise((resolve) =>
-      this.callbacks.set(corrId, [(data) => resolve(data.resp)]),
-    );
+  public async waitCommandResponse(
+    corrId: string,
+  ): Promise<ServerResponse["resp"]> {
+    const commandBundle = this.sentCommands.get(corrId);
+    if (commandBundle?.response) return commandBundle.response;
+    return new Promise((resolve) => {
+      const callbacks = this.callbacks.get(corrId);
+      const callback = (data: ServerResponse) => resolve(data.resp);
+      if (callbacks) {
+        callbacks.push(callback);
+      } else {
+        this.callbacks.set(corrId, [callback]);
+      }
+    });
   }
 
   public on(
@@ -104,10 +121,12 @@ export class ChatClient {
 
   public async sendChatCommandStr(cmd: string): Promise<string> {
     const id = `${this.corrId++}`;
-    const payload = {
+    const payload: ChatClientMessageBundle = {
       corrId: id,
       cmd,
     };
+
+    this.sentCommands.set(id, payload);
     await this.ws.send(JSON.stringify(payload));
     return id;
   }
@@ -143,6 +162,10 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "createMyAddress" });
   }
 
+  async apiGetUserAddress() {
+    return await this.sendChatCommand({ type: "showMyAddress" });
+  }
+
   async apiGetActiveUser() {
     return await this.sendChatCommand({ type: "showActiveUser" });
   }
@@ -153,6 +176,21 @@ export class ChatClient {
 
   async apiGetChats(userId: number) {
     return await this.sendChatCommand({ type: "apiGetChats", userId });
+  }
+
+  async apiGetChat(
+    chatType: ChatType,
+    chatId: number,
+    pagination: ChatPagination = { count: 100 },
+    search: string | undefined = undefined,
+  ) {
+    return await this.sendChatCommand({
+      type: "apiGetChat",
+      chatType,
+      chatId,
+      pagination,
+      search,
+    });
   }
 
   public async disconnect() {

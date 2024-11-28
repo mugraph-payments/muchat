@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import classes from "./chat.module.css";
 import ContactList from "./components/ContactList/ContactList";
 import useChatContext from "./useChatContext";
-import { ServerResponse, useWebSocket } from "./useWebSocket";
-import { ChatItem, Contact } from "./lib/response";
+import { useWebSocket } from "./useWebSocket";
+import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
 import CommandPanel from "./components/ContactList/CommandPanel/CommandPanel";
 

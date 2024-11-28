@@ -1,18 +1,14 @@
 import { useCallback, useEffect, useRef } from "react";
-import { ChatResponse, CRActiveUser, CRContactsList } from "./lib/response";
+import {
+  CRActiveUser,
+  CRContactsList,
+  CRUserContactLink,
+  ServerResponse,
+} from "./lib/response";
 import useChatContext from "./useChatContext";
 import { ChatClient } from "./lib/client";
 // when using `"withGlobalTauri": true`, you may use
 // const WebSocket = window.__TAURI__.websocket;
-
-export type ServerResponse = {
-  corrId: string;
-  resp: ChatResponse;
-};
-
-export type ClientResponseData = {
-  corrId: string | null;
-};
 
 export function useWebSocket() {
   const webSocketClient = useRef<ChatClient | null>(null);
@@ -23,6 +19,7 @@ export function useWebSocket() {
     setDirectChats,
     setActiveUser,
     setContacts,
+    setContactLink,
   } = useChatContext();
 
   const serverResponseReducer = useCallback(
@@ -60,10 +57,17 @@ export function useWebSocket() {
     )) as CRContactsList;
     if (contactsData) {
       const newContacts = new Map();
-      contactsData.contacts.forEach((c) => newContacts.set(c.contactId, c));
+      contactsData.contacts.forEach((c) => {
+        newContacts.set(c.contactId, c);
+      });
       setContacts(newContacts);
     }
-  }, [setActiveUser, setContacts, serverResponseReducer]);
+
+    const contactLink = (await client.waitCommandResponse(
+      await client.apiGetUserAddress(),
+    )) as CRUserContactLink;
+    setContactLink(contactLink.contactLink ?? null);
+  }, [setActiveUser, setContacts, serverResponseReducer, setContactLink]);
 
   useEffect(() => {
     if (!firstRun.current) return;
