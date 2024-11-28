@@ -8,6 +8,22 @@ import { ChatType } from "./lib/command";
 import CommandPanel from "./components/ContactList/CommandPanel/CommandPanel";
 import Button from "./components/ContactList/Button/Button";
 
+type MessageBubbleProps = {
+  heading: string;
+  children: React.ReactNode;
+};
+
+const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
+  return (
+    <div className={classes.chatItem}>
+      <span>{heading}</span>
+      <div className="w-full">
+        <span className="break-all">{children}</span>
+      </div>
+    </div>
+  );
+};
+
 const Chat = () => {
   const client = useWebSocket();
   const {
@@ -55,10 +71,9 @@ const Chat = () => {
   const DebugChat = (messages: ServerResponse[]) => {
     return messages.map((msg, index) => {
       return (
-        <div className={classes.chatItem} key={index}>
-          <span style={{ display: "block" }}>{msg.resp.type}</span>
-          <span>{JSON.stringify(msg)}</span>
-        </div>
+        <MessageBubble key={index} heading={msg.resp.type}>
+          {JSON.stringify(msg)}
+        </MessageBubble>
       );
     });
   };
@@ -68,16 +83,20 @@ const Chat = () => {
       return (
         <div key={index}>
           {msg.content.type === "rcvMsgContent" && (
-            <div key={index}>
-              <span>{contact?.localDisplayName}</span>
-              <div>{msg.content.msgContent.text}</div>
-            </div>
+            <MessageBubble
+              heading={contact?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
           )}
           {msg.content.type === "sndMsgContent" && (
-            <div key={index}>
-              <span>{activeUser?.localDisplayName}</span>
-              <div>{msg.content.msgContent.text}</div>
-            </div>
+            <MessageBubble
+              heading={activeUser?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
           )}
         </div>
       );

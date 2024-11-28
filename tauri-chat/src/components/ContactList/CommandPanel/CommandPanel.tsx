@@ -15,7 +15,7 @@ const CommandPanel = ({ client }: CommandPanelProps) => {
       <div className="my-2 flex flex-col justify-center gap-2">
         <div className="flex gap-2">
           Address:{" "}
-          <span className="text-gray-500 p-2 bg-black w-fit rounded">
+          <span className="bg-theme-surface0 p-2 break-all w-fit rounded">
             {contactLink?.connReqContact}
           </span>
         </div>
