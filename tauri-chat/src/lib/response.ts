@@ -107,7 +107,7 @@ export type ChatResponse =
 // CRGroupsList
 // CRFileTransferStatus
 
-type ChatResponseTag =
+export type ChatResponseTag =
   | "activeUser"
   | "usersList"
   | "chatStarted"

@@ -1,13 +1,7 @@
-import WebSocket, { Message } from "@tauri-apps/plugin-websocket";
 import { useCallback, useEffect, useRef } from "react";
 import { ChatResponse, CRActiveUser, CRContactsList } from "./lib/response";
-import {
-  ChatCommand,
-  ChatType,
-  cmdString,
-  ComposedMessage,
-} from "./lib/command";
 import useChatContext from "./useChatContext";
+import { ChatClient } from "./lib/client";
 // when using `"withGlobalTauri": true`, you may use
 // const WebSocket = window.__TAURI__.websocket;
 
@@ -21,8 +15,7 @@ export type ClientResponseData = {
 };
 
 export function useWebSocket() {
-  const corrId = useRef(0);
-  const webSocketClient = useRef<WebSocket | null>(null);
+  const webSocketClient = useRef<ChatClient | null>(null);
   const firstRun = useRef(true);
   const {
     setIsConnected,
@@ -31,14 +24,6 @@ export function useWebSocket() {
     setActiveUser,
     setContacts,
   } = useChatContext();
-  const callbacks = useRef<Map<string, (data: ServerResponse) => void>>(
-    new Map(),
-  );
-
-  const disconnect = useCallback(async () => {
-    await webSocketClient.current?.disconnect();
-    setIsConnected(false);
-  }, [setIsConnected]);
 
   const serverResponseReducer = useCallback(
     (data: ServerResponse) => {
@@ -56,185 +41,47 @@ export function useWebSocket() {
     [addMessage, setDirectChats],
   );
 
-  const handleServerMessages = useCallback(
-    (message: Message) => {
-      switch (message.type) {
-        case "Text": {
-          const data = JSON.parse(message.data) as ServerResponse;
-          serverResponseReducer(data);
-          const corrId = data.corrId;
-          if (corrId) {
-            const callback = callbacks.current.get(corrId);
-            callback?.(data);
-          }
-          break;
-        }
-        case "Close":
-          disconnect();
-          break;
-        default:
-          return;
-      }
-    },
-    [disconnect, serverResponseReducer],
-  );
-
-  const connectWebsocket = useCallback(async (): Promise<WebSocket> => {
-    const ws = await WebSocket.connect("ws://localhost:5225");
-    ws.addListener(handleServerMessages);
-    return ws;
-  }, [handleServerMessages]);
-
-  const sendChatCommand = useCallback(
-    async (command: ChatCommand): Promise<ClientResponseData> => {
-      return sendChatCommandStr(cmdString(command));
-    },
-    [],
-  );
-
-  const setAutoAccept = useCallback(
-    async (value: boolean): Promise<ClientResponseData> => {
-      const corrId = await sendChatCommand({
-        type: "addressAutoAccept",
-        autoAccept: { acceptIncognito: value },
-      });
-      return corrId;
-    },
-    [sendChatCommand],
-  );
-
-  const createAddress = useCallback(async (): Promise<ClientResponseData> => {
-    const corrId = await sendChatCommand({ type: "createMyAddress" });
-    return corrId;
-  }, [sendChatCommand]);
-
-  const getActiveUser = useCallback(async (): Promise<string | null> => {
-    if (!webSocketClient.current) {
-      return null;
-    }
-    const corrId = Date.now().toString();
-    await webSocketClient.current.send(
-      JSON.stringify({
-        cmd: `/u`,
-        corrId,
-      }),
-    );
-
-    return corrId;
-  }, []);
-
-  const sendChatCommandStr = async (
-    cmd: string,
-  ): Promise<ClientResponseData> => {
-    if (!webSocketClient.current) return { corrId: null };
-    const id = `${++corrId.current}`;
-    const payload = {
-      corrId: id,
-      cmd,
-    };
-    await webSocketClient.current?.send(JSON.stringify(payload));
-    return { corrId: id };
-  };
-
-  const sendMessages = async (
-    chatType: ChatType,
-    chatId: number,
-    messages: ComposedMessage[],
-  ): Promise<ClientResponseData> => {
-    return sendChatCommand({
-      type: "apiSendMessage",
-      chatId,
-      chatType,
-      messages,
-    });
-  };
-
-  const listContacts = useCallback(
-    async (userId: string) => {
-      return await sendChatCommand({
-        type: "listContacts",
-        userId,
-      });
-    },
-    [sendChatCommand],
-  );
-
-  const commandSync = useCallback(
-    (corrId: string): Promise<ServerResponse["resp"]> => {
-      return new Promise((resolve, reject) => {
-        if (!corrId) reject("No corrId");
-        callbacks.current.set(corrId, (data) => {
-          resolve(data.resp);
-        });
-      });
-    },
-    [],
-  );
-
   const initChatClient = useCallback(async () => {
-    await createAddress();
-    const activeUserData = (await commandSync(
-      (await getActiveUser()) ?? "",
+    const client = webSocketClient.current;
+    if (!client) throw new Error("Client is undefined");
+
+    client.on("message", serverResponseReducer);
+    await client.waitCommandResponse(await client.apiCreateAddress());
+
+    const activeUserData = (await client.waitCommandResponse(
+      await client.apiGetActiveUser(),
     )) as CRActiveUser;
     setActiveUser(activeUserData.user);
+    await client.apiSetAutoAccept();
 
     if (!activeUserData.user) return;
-    const contactsData = (await commandSync(
-      (await listContacts(activeUserData.user.userId.toString())).corrId ?? "",
+    const contactsData = (await client.waitCommandResponse(
+      await client.apiListContacts(activeUserData.user.userId.toString()),
     )) as CRContactsList;
     if (contactsData) {
       const newContacts = new Map();
       contactsData.contacts.forEach((c) => newContacts.set(c.contactId, c));
       setContacts(newContacts);
     }
-
-    await setAutoAccept(true);
-  }, [
-    createAddress,
-    getActiveUser,
-    setAutoAccept,
-    commandSync,
-    listContacts,
-    setActiveUser,
-    setContacts,
-  ]);
-
-  const connect = useCallback(async () => {
-    webSocketClient.current = await connectWebsocket();
-    setIsConnected(true);
-    initChatClient();
-  }, [initChatClient, setIsConnected, connectWebsocket]);
+  }, [setActiveUser, setContacts, serverResponseReducer]);
 
   useEffect(() => {
     if (!firstRun.current) return;
     firstRun.current = false;
 
     console.log("🟩 Connecting...");
+    async function connect() {
+      webSocketClient.current = await ChatClient.create();
+      setIsConnected(true);
+      initChatClient();
+    }
     connect();
 
     return () => {
       console.log("🟥 Disconnecting");
-      disconnect();
+      webSocketClient.current?.disconnect();
     };
-  }, [connect, disconnect]);
+  }, [webSocketClient, setIsConnected, initChatClient]);
 
-  const getChats = async (userId: number) => {
-    return await sendChatCommand({ type: "apiGetChats", userId });
-  };
-
-  const listUsers = async () => {
-    return await sendChatCommand({ type: "listUsers" });
-  };
-
-  return {
-    commandSync,
-    setAutoAccept,
-    createAddress,
-    getActiveUser,
-    sendChatCommand,
-    sendMessages,
-    getChats,
-    listUsers,
-    listContacts,
-  };
+  return webSocketClient;
 }

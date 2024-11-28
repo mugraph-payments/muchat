@@ -31,7 +31,7 @@ const Chat = () => {
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {
-      client.sendMessages(ChatType.Direct, selectedChatId, [
+      client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
         {
           msgContent: {
             type: "text",

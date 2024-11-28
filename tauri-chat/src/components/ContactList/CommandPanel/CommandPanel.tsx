@@ -19,7 +19,7 @@ const CommandPanel = ({ client }: CommandPanelProps) => {
       apiGetChat */}
       <button
         onClick={() =>
-          client.listContacts((activeUser?.userId ?? 0).toString())
+          client?.current?.apiListContacts((activeUser?.userId ?? 0).toString())
         }
       >
         List Contacts
