@@ -1,9 +1,29 @@
 import classes from "./ContactList.module.css";
 import useChatContext from "../../useChatContext";
 import Button from "./Button/Button";
+import { useRef } from "react";
+import { useWebSocket } from "../../useWebSocket";
 
-function ContactList() {
+type ContactListProps = {
+  client: ReturnType<typeof useWebSocket>;
+};
+
+function ContactList({ client }: ContactListProps) {
   const { contacts, setSelectedChatId, selectedChatId } = useChatContext();
+  const contactInputRef = useRef<HTMLInputElement>(null);
+
+  const addContact = async (connLink: string) => {
+    const res = await client.current?.waitCommandResponse(
+      await client.current?.apiConnect(connLink),
+    );
+    return res;
+  };
+
+  const handleAddContactInput = async () => {
+    if (!contactInputRef.current || !contactInputRef.current.value) return;
+    await addContact(contactInputRef.current.value);
+    contactInputRef.current.value = "";
+  };
 
   return (
     <div className={classes.container}>
@@ -33,8 +53,13 @@ function ContactList() {
           })}
         </div>
       </div>
-      <div>
-        <Button>+ Add new contact</Button>
+      <div className="flex gap-2">
+        <Button onClick={handleAddContactInput}>+ Add new contact</Button>
+        <input
+          ref={contactInputRef}
+          placeholder="Connection Address"
+          className="w-42 p-2 rounded"
+        />
       </div>
     </div>
   );

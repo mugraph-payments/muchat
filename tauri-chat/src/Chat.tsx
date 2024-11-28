@@ -94,7 +94,7 @@ const Chat = () => {
         >
           {isConnected ? "Connected" : "Disconnected"}
         </div>
-        <ContactList />
+        <ContactList client={client} />
       </div>
 
       <div id="messages" className={classes.chatBody}>

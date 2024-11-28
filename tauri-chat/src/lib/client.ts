@@ -25,6 +25,11 @@ export type ChatClientMessageBundle = ChatCommandMessage & {
   response?: ChatResponse;
 };
 
+export enum ConnReqType {
+  Invitation = "invitation",
+  Contact = "contact",
+}
+
 export class ChatClient {
   private corrId = 0;
   private static instance: ChatClient;
@@ -191,6 +196,10 @@ export class ChatClient {
       pagination,
       search,
     });
+  }
+
+  async apiConnect(connReq: string) {
+    return await this.sendChatCommand({ type: "connect", connReq });
   }
 
   public async disconnect() {
