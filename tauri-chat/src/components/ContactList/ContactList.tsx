@@ -1,5 +1,6 @@
 import classes from "./ContactList.module.css";
 import useChatContext from "../../useChatContext";
+import Button from "./Button/Button";
 
 function ContactList() {
   const { contacts, setSelectedChatId, selectedChatId } = useChatContext();
@@ -9,17 +10,17 @@ function ContactList() {
       <h3>Contact List</h3>
       <div className={classes.body}>
         <div className="flex gap-2">
-          <button
+          <Button
             className={`${classes.item} ${
               selectedChatId === -1 && classes.selected
             }`}
             onClick={() => setSelectedChatId(-1)}
           >
             Debug Chat
-          </button>
+          </Button>
           {[...contacts].map(([cId, contact], index) => {
             return (
-              <button
+              <Button
                 key={index}
                 className={`${classes.item} ${
                   selectedChatId === cId && classes.selected
@@ -27,13 +28,13 @@ function ContactList() {
                 onClick={() => setSelectedChatId(cId)}
               >
                 {cId} {contact.localDisplayName}
-              </button>
+              </Button>
             );
           })}
         </div>
       </div>
       <div>
-        <button>+ Add new contact</button>
+        <Button>+ Add new contact</Button>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import useChatContext from "../../../useChatContext";
 import { useWebSocket } from "../../../useWebSocket";
+import Button from "../Button/Button";
 
 type CommandPanelProps = {
   client: ReturnType<typeof useWebSocket>;
@@ -22,7 +23,7 @@ const CommandPanel = ({ client }: CommandPanelProps) => {
         <div>Active User: "{activeUser?.localDisplayName}"</div>
       </div>
       <div className="flex gap-2">
-        <button
+        <Button
           onClick={() =>
             client?.current?.apiListContacts(
               (activeUser?.userId ?? 0).toString(),
@@ -30,29 +31,29 @@ const CommandPanel = ({ client }: CommandPanelProps) => {
           }
         >
           List Contacts
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => {
             client?.current?.apiGetChats(activeUser?.userId ?? 0);
           }}
         >
           Get Gets
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             client?.current?.apiCreateAddress();
           }}
         >
           Create address
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             client?.current?.apiGetUserAddress();
           }}
         >
           Get Address
-        </button>
+        </Button>
       </div>
     </div>
   );
