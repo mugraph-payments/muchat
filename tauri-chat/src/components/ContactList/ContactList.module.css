@@ -12,12 +12,9 @@
 .item {
   outline: none;
   border: none;
-  border-radius: 4px;
-  padding: 0.5rem;
-  background: black;
+  @apply p-2 rounded bg-muted text-muted-foreground;
 }
 
 .selected {
-  background: #c4c4c4;
-  color: black;
+  @apply bg-foreground text-background;
 }

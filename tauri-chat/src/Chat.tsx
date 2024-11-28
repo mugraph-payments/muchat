@@ -6,6 +6,7 @@ import { useWebSocket } from "./useWebSocket";
 import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
 import CommandPanel from "./components/ContactList/CommandPanel/CommandPanel";
+import Button from "./components/ContactList/Button/Button";
 
 const Chat = () => {
   const client = useWebSocket();
@@ -111,9 +112,9 @@ const Chat = () => {
           onKeyDown={handleKeyPress}
           className={classes.messageInput}
         />
-        <button onClick={handleSendMessage} className={classes.sendButton}>
+        <Button onClick={handleSendMessage} className={classes.sendButton}>
           Send
-        </button>
+        </Button>
       </div>
     </div>
   );
