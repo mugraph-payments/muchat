@@ -2,9 +2,27 @@ import { useMemo, useState } from "react";
 import classes from "./chat.module.css";
 import ContactList from "./components/ContactList/ContactList";
 import useChatContext from "./useChatContext";
-import { ServerResponse, useWebSocket } from "./useWebSocket";
-import { ChatItem, Contact } from "./lib/response";
+import { useWebSocket } from "./useWebSocket";
+import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
+import CommandPanel from "./components/CommandPanel/CommandPanel";
+import Button from "./components/Button/Button";
+
+type MessageBubbleProps = {
+  heading: string;
+  children: React.ReactNode;
+};
+
+const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
+  return (
+    <div className={classes.chatItem}>
+      <span>{heading}</span>
+      <div className="w-full">
+        <span className="break-all">{children}</span>
+      </div>
+    </div>
+  );
+};
 
 const Chat = () => {
   const client = useWebSocket();
@@ -30,7 +48,7 @@ const Chat = () => {
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {
-      client.sendMessages(ChatType.Direct, selectedChatId, [
+      client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
         {
           msgContent: {
             type: "text",
@@ -53,10 +71,9 @@ const Chat = () => {
   const DebugChat = (messages: ServerResponse[]) => {
     return messages.map((msg, index) => {
       return (
-        <div className={classes.chatItem} key={index}>
-          <span style={{ display: "block" }}>{msg.resp.type}</span>
-          <span>{JSON.stringify(msg)}</span>
-        </div>
+        <MessageBubble key={index} heading={msg.resp.type}>
+          {JSON.stringify(msg)}
+        </MessageBubble>
       );
     });
   };
@@ -64,34 +81,35 @@ const Chat = () => {
   const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
     return messages.map((msg, index) => {
       return (
-        <>
-          <span>
-            {msg.content.type === "rcvMsgContent" && (
-              <div key={index}>
-                <span>{contact?.localDisplayName}</span>
-                <div>{msg.content.msgContent.text}</div>
-              </div>
-            )}
-            {msg.content.type === "sndMsgContent" && (
-              <div key={index}>
-                <span>{activeUser?.localDisplayName}</span>
-                <div>{msg.content.msgContent.text}</div>
-              </div>
-            )}
-          </span>
-        </>
+        <div key={index}>
+          {msg.content.type === "rcvMsgContent" && (
+            <MessageBubble
+              heading={contact?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
+          )}
+          {msg.content.type === "sndMsgContent" && (
+            <MessageBubble
+              heading={activeUser?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
+          )}
+        </div>
       );
     });
   };
 
   return (
     <div className={classes.container}>
+      <div className="bg-gray-800"></div>
 
-    <div className="bg-gray-800"></div>
-
-  <div className="h-screen w-64 text-white">
-    </div>
+      <div className="h-screen w-64 text-white"></div>
       <div>
+        <CommandPanel client={client} />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
@@ -99,7 +117,8 @@ const Chat = () => {
         >
           {isConnected ? "Connected" : "Disconnected"}
         </div>
-        <ContactList />
+
+        <ContactList client={client} />
       </div>
 
       <div id="messages" className={classes.chatBody}>
@@ -116,9 +135,9 @@ const Chat = () => {
           onKeyDown={handleKeyPress}
           className={classes.messageInput}
         />
-        <button onClick={handleSendMessage} className={classes.sendButton}>
+        <Button onClick={handleSendMessage} className={classes.sendButton}>
           Send
-        </button>
+        </Button>
       </div>
     </div>
   );

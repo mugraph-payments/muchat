@@ -1,3 +1,8 @@
+export type ChatCommandMessage = {
+  corrId: string | null;
+  cmd: string;
+};
+
 export type ChatCommand =
   | ShowActiveUser
   | CreateActiveUser
@@ -64,7 +69,8 @@ export type ChatCommand =
   | APIAddressAutoAccept
   | ReceiveFile
   | CancelFile
-  | FileStatus;
+  | FileStatus
+  | ListContacts;
 
 // not included commands (they are not needed for Websocket clients, and can still be sent as strings):
 // APIActivateChat
@@ -163,10 +169,16 @@ type ChatCommandTag =
   | "apiAddressAutoAccept"
   | "receiveFile"
   | "cancelFile"
-  | "fileStatus";
+  | "fileStatus"
+  | "listContacts";
 
 interface IChatCommand {
   type: ChatCommandTag;
+}
+
+export interface ListContacts extends IChatCommand {
+  type: "listContacts";
+  userId: string;
 }
 
 export interface ShowActiveUser extends IChatCommand {
@@ -810,6 +822,8 @@ export function cmdString(cmd: ChatCommand): string {
       return `/fcancel ${cmd.fileId}`;
     case "fileStatus":
       return `/fstatus ${cmd.fileId}`;
+    case "listContacts":
+      return `/_contacts ${cmd.userId}`;
   }
 }
 

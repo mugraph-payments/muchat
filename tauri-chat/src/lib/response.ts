@@ -9,6 +9,11 @@ import {
   ServerCfg,
 } from "./command";
 
+export type ServerResponse = {
+  corrId: string;
+  resp: ChatResponse;
+};
+
 export type ChatResponse =
   | CRActiveUser
   | CRUsersList
@@ -98,7 +103,8 @@ export type ChatResponse =
   | CRContactConnectionDeleted
   | CRMessageError
   | CRChatCmdError
-  | CRChatError;
+  | CRChatError
+  | CRContactsList;
 
 // not included
 // CRChatItemDeletedNotFound
@@ -106,7 +112,7 @@ export type ChatResponse =
 // CRGroupsList
 // CRFileTransferStatus
 
-type ChatResponseTag =
+export type ChatResponseTag =
   | "activeUser"
   | "usersList"
   | "chatStarted"
@@ -197,10 +203,17 @@ type ChatResponseTag =
   | "contactConnectionDeleted"
   | "messageError"
   | "chatCmdError"
-  | "chatError";
+  | "chatError"
+  | "contactsList";
 
 interface CR {
   type: ChatResponseTag;
+}
+
+export interface CRContactsList extends CR {
+  type: "contactsList";
+  user: User;
+  contacts: Contact[];
 }
 
 export interface CRActiveUser extends CR {
@@ -1020,7 +1033,7 @@ interface FileTransferMeta {
   cancelled: boolean;
 }
 
-interface UserContactLink {
+export interface UserContactLink {
   connReqContact: string;
   autoAccept?: AutoAccept;
 }

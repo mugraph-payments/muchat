@@ -7,10 +7,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -22,6 +19,8 @@ body {
   height: 100%;
   max-height: 100vh;
   overflow: hidden;
+
+  @apply text-foreground bg-background;
 }
 
 *,
@@ -36,4 +35,102 @@ body {
 main {
   position: relative;
   height: 100%;
+}
+
+@layer base {
+  :root {
+    --font-base: 1.1rem;
+    --radius: 0.5rem;
+
+    /* Mocha palette */
+    --theme-rosewater: 10 56% 91%;
+    --theme-flamingo: 0 59% 88%;
+    --theme-pink: 316 72% 86%;
+    --theme-mauve: 267 84% 81%;
+    --theme-red: 343 81% 75%;
+    --theme-maroon: 350 65% 77%;
+    --theme-peach: 23 92% 75%;
+    --theme-yellow: 41 86% 83%;
+    --theme-green: 115 54% 76%;
+    --theme-teal: 170 57% 73%;
+    --theme-sky: 189 71% 73%;
+    --theme-sapphire: 199 76% 69%;
+    --theme-blue: 217 92% 76%;
+    --theme-lavender: 232 97% 85%;
+    --theme-text: 226 64% 88%;
+    --theme-subtext1: 227 35% 80%;
+    --theme-subtext0: 228 24% 72%;
+    --theme-overlay2: 228 17% 64%;
+    --theme-overlay1: 230 13% 55%;
+    --theme-overlay0: 231 11% 47%;
+    --theme-surface2: 233 12% 39%;
+    --theme-surface1: 234 13% 31%;
+    --theme-surface0: 237 16% 23%;
+    --theme-base: 240 21% 15%;
+    --theme-mantle: 240 21% 12%;
+    --theme-crust: 240 23% 9%;
+  }
+
+  :root,
+  .dark {
+    /* Dark is the only theme for now */
+    --background: var(--theme-crust);
+    --foreground: var(--theme-text);
+    /* --heading: 232, 97%, 85%; */
+    --heading: var(--theme-blue);
+    --card: var(--theme-base);
+    --card-foreground: var(--theme-text);
+    --popover: var(--theme-crust);
+    --popover-foreground: var(--theme-text);
+    --primary: var(--theme-surface2);
+    --primary-foreground: var(--theme-text);
+    --secondary: var(--theme-mantle);
+    --secondary-foreground: var(--theme-text);
+    --muted: var(--theme-surface0);
+    --muted-foreground: var(--theme-text);
+    --accent: var(--theme-blue);
+    --accent-foreground: var(--theme-base);
+    --destructive: var(--theme-red);
+    --destructive-foreground: var(--background);
+    --border: var(--theme-surface0);
+    --input: var(--theme-subtext0);
+    --ring: var(--theme-text);
+    --chart-1: var(--theme-blue);
+    --chart-2: var(--theme-teal);
+    --chart-3: var(--theme-sapphire);
+    --chart-4: var(--theme-yellow);
+    --chart-5: var(--theme-peach);
+  }
+
+  /* Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: hsl(var(--muted));
+    border-radius: 100vh;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 100vh;
+    border: 1px solid hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--accent));
+  }
+}
+
+@layer components {
+  input {
+    @apply bg-theme-surface2 text-input;
+  }
 }
