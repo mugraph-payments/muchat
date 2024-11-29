@@ -1,18 +1,18 @@
 import useChatContext from "../../useChatContext";
+import Button from "../Button/Button";
 
 function ContactListv2() {
   const { contacts } = useChatContext();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-2">
       {[...contacts].map(([_, contact], index) => {
         return (
-          <button
+          <Button
             key={index}
-            className="hover:bg-gray-100/50 hover:rounded-md transition-colors duration-200 p-2 text-center"
           >
             {contact.localDisplayName}
-          </button>
+          </Button>
         );
       })}
     </div>
