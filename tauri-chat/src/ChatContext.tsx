@@ -30,7 +30,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<ServerResponse[]>([]);
-  const [contacts, setContacts] = useState<Map<number, Contact>>(new Map());
+  const [contacts, setContacts] = useState<Map<number, Contact>>(new Map([]));
   const [directChats, setDirectChats] = useState<Map<number, ChatItem[]>>(
     new Map(),
   );

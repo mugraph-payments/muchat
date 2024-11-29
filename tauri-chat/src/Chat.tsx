@@ -86,6 +86,11 @@ const Chat = () => {
 
   return (
     <div className={classes.container}>
+
+    <div className="bg-gray-800"></div>
+
+  <div className="h-screen w-64 text-white">
+    </div>
       <div>
         <div
           className={`${classes.status} ${
