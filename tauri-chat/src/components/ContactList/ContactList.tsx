@@ -1,6 +1,6 @@
 import classes from "./ContactList.module.css";
 import useChatContext from "../../useChatContext";
-import Button from "./Button/Button";
+import Button from "../Button/Button";
 import { useRef } from "react";
 import { useWebSocket } from "../../useWebSocket";
 
@@ -24,6 +24,8 @@ function ContactList({ client }: ContactListProps) {
     await addContact(contactInputRef.current.value);
     contactInputRef.current.value = "";
   };
+
+  console.log(contacts);
 
   return (
     <div className={classes.container}>

@@ -1,5 +1,5 @@
-import useChatContext from "../../../useChatContext";
-import { useWebSocket } from "../../../useWebSocket";
+import useChatContext from "../../useChatContext";
+import { useWebSocket } from "../../useWebSocket";
 import Button from "../Button/Button";
 
 type CommandPanelProps = {

@@ -5,8 +5,8 @@ import useChatContext from "./useChatContext";
 import { useWebSocket } from "./useWebSocket";
 import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
-import CommandPanel from "./components/ContactList/CommandPanel/CommandPanel";
-import Button from "./components/ContactList/Button/Button";
+import CommandPanel from "./components/CommandPanel/CommandPanel";
+import Button from "./components/Button/Button";
 
 type MessageBubbleProps = {
   heading: string;
@@ -114,6 +114,7 @@ const Chat = () => {
         >
           {isConnected ? "Connected" : "Disconnected"}
         </div>
+
         <ContactList client={client} />
       </div>
 
