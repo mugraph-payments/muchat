@@ -3,7 +3,7 @@ import SideBar from "@/components/SideBar/SideBar";
 
 function App() {
   return (
-    <main className="flex gap-4">
+    <main className="flex">
       <SideBar />
       <Chat />
     </main>
