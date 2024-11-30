@@ -1,5 +1,5 @@
-import useChatContext from "../../useChatContext";
-import ContactListv2 from "../ContactList/ContactListV2";
+import useChatContext from "@/useChatContext";
+import ContactListv2 from "@/components/ContactList/ContactListV2";
 
 function SideBar() {
   const { contacts } = useChatContext();

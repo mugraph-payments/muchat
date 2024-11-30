@@ -1,5 +1,5 @@
-import useChatContext from "../../useChatContext";
-import Button from "../Button/Button";
+import useChatContext from "@/useChatContext";
+import Button from "@/components/Button/Button";
 
 function ContactListv2() {
   const { contacts, setSelectedChatId, selectedChatId } = useChatContext();

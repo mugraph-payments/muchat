@@ -7,7 +7,7 @@ import {
   UserContactLink,
   ServerResponse,
   User,
-} from "./lib/response";
+} from "@/lib/response";
 
 interface ChatContextType {
   isConnected: boolean;
