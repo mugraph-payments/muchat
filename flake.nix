@@ -97,9 +97,9 @@
             (attrValues scripts)
 
             rust
-            cargo-edit
-            cargo-nextest
+            cargo-tauri
             cargo-watch
+
             nodePackages.pnpm
           ];
         };

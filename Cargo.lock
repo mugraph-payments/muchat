@@ -1828,17 +1828,12 @@ dependencies = [
 name = "muchat-ui"
 version = "0.0.1"
 dependencies = [
- "futures",
  "log",
- "muchat-providers",
- "serde",
- "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-log",
  "tauri-plugin-websocket",
  "tokio",
- "tokio-tungstenite",
 ]
 
 [[package]]
