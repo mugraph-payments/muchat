@@ -10,9 +10,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
     - uses: DeterminateSystems/nix-installer-action@main
     - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: actions/checkout@v4
     - run: nix flake check
   build:
     needs: check
@@ -21,14 +21,17 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-    - uses: actions/checkout@v3
     - uses: DeterminateSystems/nix-installer-action@main
     - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: actions/checkout@v4
     - run: nix build -L
   build-windows:
     needs: check
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-tauri
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo build --all --release
+      - uses: actions/checkout@v4
+      - run: cargo tauri build --ci
