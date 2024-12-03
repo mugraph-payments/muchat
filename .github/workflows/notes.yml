@@ -1,11 +1,14 @@
 # Uses git-gloss to generate notes to commits related to a pull request
 name: Push notes (using git-gloss)
+
 on:
   push:
     branches:
       - main
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest

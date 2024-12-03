@@ -33,25 +33,15 @@
           ];
         };
 
-        inherit (pkgs)
-          makeRustPlatform
-          mkShell
-          rust-bin
-          writeShellApplication
-          ;
+        inherit (pkgs) mkShell rust-bin writeShellApplication;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-        rustPlatform = makeRustPlatform {
-          rustc = rust;
-          cargo = rust;
-        };
 
         scripts.muchat-watch = writeShellApplication {
           name = "muchat-watch";
           runtimeInputs = with pkgs; [
             cargo-nextest
             cargo-watch
-
             rust
           ];
           text = ''
@@ -77,16 +67,6 @@
         checks = {
           inherit pre-commit-check;
         };
-
-        packages = rec {
-          default = muchat;
-
-          muchat = rustPlatform.buildRustPackage {
-            name = "muchat";
-            src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
-          };
-        } // scripts;
 
         devShells.default = mkShell {
           inherit (pre-commit-check) shellHook;
