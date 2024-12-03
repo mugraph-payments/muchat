@@ -97,9 +97,10 @@
             (attrValues scripts)
 
             rust
+            cargo-edit
             cargo-nextest
             cargo-watch
-            openssl
+            nodePackages.pnpm
           ];
         };
       }
