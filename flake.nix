@@ -100,6 +100,7 @@
             cargo-tauri
             cargo-watch
 
+            nodejs
             nodePackages.pnpm
           ];
         };
