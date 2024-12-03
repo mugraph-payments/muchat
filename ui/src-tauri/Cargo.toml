@@ -1,14 +1,10 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "muchat-ui"
+version = "0.0.1"
 edition = "2021"
-rust-version = "1.77.2"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/mugraph-payments/muchat"
+authors = ["Cainã Costa <me@cfcosta.com>"]
 
 [lib]
 name = "app_lib"
@@ -18,13 +14,13 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.0.2", features = [] }
 
 [dependencies]
-serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"] }
+futures = "0.3.30"
 log = "0.4"
+muchat-providers = { path = "../../providers/" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 tauri = { version = "2.1.0", features = [] }
 tauri-plugin-log = "2.0.0-rc"
-futures = "0.3.30"
+tauri-plugin-websocket = "2"
 tokio = { version = "1.41.1", features = ["full"] }
 tokio-tungstenite = "0.24"
-muchat-providers = { path = "../../providers/" }
-tauri-plugin-websocket = "2"

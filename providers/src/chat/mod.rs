@@ -22,30 +22,33 @@ where
 {
     pin_mut!(message_stream);
     while let Some(response) = message_stream.next().await {
-        if let Ok(message) = response { if let ChatResponse::NewChatItems { chat_items, .. } = message.resp {
-            for item in chat_items {
-                if let ChatInfo::Direct(c_info_direct) = item.chat_info {
-                    if let DirectionType::DirectSnd = item.chat_item.chat_dir.direction_type { continue }
+        if let Ok(message) = response {
+            if let ChatResponse::NewChatItems { chat_items, .. } = message.resp {
+                for item in chat_items {
+                    if let ChatInfo::Direct(c_info_direct) = item.chat_info {
+                        if let DirectionType::DirectSnd = item.chat_item.chat_dir.direction_type {
+                            continue;
+                        }
 
-                    if let Some(content) = utils::extract_text_content(item.chat_item.content)
-                    {
-                        let number: Result<f64, _> = content.parse();
-                        let reply = match number {
-                            Ok(n) => format!("{} * {} = {}", n, n, n * n),
-                            Err(_) => "this is not a number".to_string(),
-                        };
+                        if let Some(content) = utils::extract_text_content(item.chat_item.content) {
+                            let number: Result<f64, _> = content.parse();
+                            let reply = match number {
+                                Ok(n) => format!("{} * {} = {}", n, n, n * n),
+                                Err(_) => "this is not a number".to_string(),
+                            };
 
-                        let _ = client
-                            .send_text(
-                                ChatInfoType::Direct,
-                                c_info_direct.contact.contact_id,
-                                reply,
-                            )
-                            .await;
+                            let _ = client
+                                .send_text(
+                                    ChatInfoType::Direct,
+                                    c_info_direct.contact.contact_id,
+                                    reply,
+                                )
+                                .await;
+                        }
                     }
                 }
             }
-        } }
+        }
     }
 }
 
