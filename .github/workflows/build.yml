@@ -10,11 +10,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - uses: DeterminateSystems/nix-installer-action@main
-    - uses: DeterminateSystems/magic-nix-cache-action@main
-    - uses: actions/checkout@v4
-    - run: cargo fmt --all --check
-    - run: cargo clippy --all
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions/checkout@v4
+      - run: cargo fmt --all --check
+      - run: cargo clippy --all
 
   build:
     needs: check
@@ -28,4 +27,7 @@ jobs:
         with:
           tool: cargo-tauri
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ui/package.json
       - run: cargo tauri build --ci

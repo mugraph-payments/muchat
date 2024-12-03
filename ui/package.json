@@ -11,18 +11,12 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-<<<<<<< HEAD:ui/package.json
-    "@tauri-apps/plugin-websocket": "~2.0.0",
-||||||| 3d759db:tauri-chat/package.json
-    "@tauri-apps/plugin-websocket": "~2",
-=======
     "@radix-ui/react-separator": "^1.1.0",
-    "@tauri-apps/plugin-websocket": "~2",
+    "@tauri-apps/plugin-websocket": "~2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.462.0",
     "path": "^0.12.7",
->>>>>>> origin/layout:tauri-chat/package.json
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.5",
