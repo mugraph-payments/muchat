@@ -39,9 +39,6 @@
           rust-bin
           writeShellApplication
           ;
-        inherit (pkgs.darwin.apple_sdk) frameworks;
-        inherit (pkgs.lib) optionals;
-        inherit (pkgs.stdenv) isDarwin isLinux;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         rustPlatform = makeRustPlatform {
@@ -96,36 +93,14 @@
 
           name = "muchat";
 
-          buildInputs =
-            with pkgs;
-            [
-              (attrValues scripts)
+          buildInputs = with pkgs; [
+            (attrValues scripts)
 
-              rust
-              cargo-nextest
-              cargo-watch
-              openssl
-              openssl_1_1
-            ]
-            ++ (
-              with frameworks;
-              optionals isDarwin [
-                CoreFoundation
-                CoreVideo
-                AppKit
-                IOSurface
-                CoreText
-                CoreGraphics
-                ApplicationServices
-                Security
-              ]
-            )
-            ++ optionals isLinux [
-              xorg.libxcb
-              libxkbcommon
-              vulkan-tools
-              vulkan-headers
-            ];
+            rust
+            cargo-nextest
+            cargo-watch
+            openssl
+          ];
         };
       }
     );

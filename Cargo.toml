@@ -1,11 +1,3 @@
 [workspace]
 members = ["providers", "tauri-chat/src-tauri"]
-
-[package]
-name = "muchat"
-version = "0.0.1"
-edition = "2021"
-license = "MIT"
-
-[dependencies]
-iced = { version = "0.13.1", features = ["markdown", "highlighter", "debug"] }
+resolver = "2"
