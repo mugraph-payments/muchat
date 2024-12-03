@@ -441,13 +441,13 @@ pub struct ChatItem {
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ChatInfo {
     #[serde(rename = "direct")]
-    Direct(CInfoDirect),
+    Direct(Box<CInfoDirect>),
 
     #[serde(rename = "group")]
-    Group(CInfoGroup),
+    Group(Box<CInfoGroup>),
 
     #[serde(rename = "contact")]
-    ContactRequest(CInfoContactRequest),
+    ContactRequest(Box<CInfoContactRequest>),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
