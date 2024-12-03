@@ -1,8 +1,10 @@
-import Chat from "./Chat";
+import Chat from "@/Chat";
+import SideBar from "@/components/SideBar/SideBar";
 
 function App() {
   return (
-    <main>
+    <main className="flex">
+      <SideBar />
       <Chat />
     </main>
   );

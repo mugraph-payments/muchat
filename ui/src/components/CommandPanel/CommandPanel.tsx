@@ -1,6 +1,6 @@
-import useChatContext from "../../useChatContext";
-import { useWebSocket } from "../../useWebSocket";
-import Button from "../Button/Button";
+import useChatContext from "@/useChatContext";
+import { useWebSocket } from "@/useWebSocket";
+import Button from "@/components/Button/Button";
 
 type CommandPanelProps = {
   client: ReturnType<typeof useWebSocket>;

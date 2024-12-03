@@ -11,13 +11,27 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+<<<<<<< HEAD:ui/package.json
     "@tauri-apps/plugin-websocket": "~2.0.0",
+||||||| 3d759db:tauri-chat/package.json
+    "@tauri-apps/plugin-websocket": "~2",
+=======
+    "@radix-ui/react-separator": "^1.1.0",
+    "@tauri-apps/plugin-websocket": "~2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.462.0",
+    "path": "^0.12.7",
+>>>>>>> origin/layout:tauri-chat/package.json
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
     "@tauri-apps/cli": "^2.1.0",
+    "@types/node": "^22.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

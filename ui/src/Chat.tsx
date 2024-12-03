@@ -103,8 +103,16 @@ const Chat = () => {
     });
   };
 
+  const contactName = contacts.get(selectedChatId)?.localDisplayName;
+  
   return (
     <div className={classes.container}>
+      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base">
+        <h2>{contactName ?? "Debug"}</h2>
+      </div>
+      <div className="bg-gray-800"></div>
+
+      <div className="h-screen w-64 text-white"></div>
       <div>
         <CommandPanel client={client} />
         <div
