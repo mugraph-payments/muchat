@@ -7,9 +7,7 @@ function SideBar() {
 
   return (
     <div className="bg-theme-mantle flex flex-col p-4 gap-2 border-r-[1px] border-theme-base w-1/12">
-      <h1 className="text-2xl">
-        Chats ({contacts.size})
-      </h1>
+      <h1 className="text-2xl">Chats ({contacts.size})</h1>
       <Separator />
       <div>
         <ContactListv2 />

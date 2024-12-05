@@ -104,7 +104,7 @@ const Chat = () => {
   };
 
   const contactName = contacts.get(selectedChatId)?.localDisplayName;
-  
+
   return (
     <div className={classes.container}>
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base">

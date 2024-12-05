@@ -10,7 +10,11 @@ function ContactListv2() {
         return (
           <Button
             key={index}
-            className={selectedChatId == cId ? "bg-theme-text text-background" : "bg-muted text-muted-foreground"}
+            className={
+              selectedChatId == cId
+                ? "bg-theme-text text-background"
+                : "bg-muted text-muted-foreground"
+            }
             onClick={() => setSelectedChatId(cId)}
           >
             {contact.localDisplayName}
