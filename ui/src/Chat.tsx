@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import classes from "./chat.module.css";
 import ContactList from "./components/ContactList/ContactList";
 import useChatContext from "./useChatContext";
-import { useWebSocket } from "./useWebSocket";
 import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
 import CommandPanel from "./components/CommandPanel/CommandPanel";
@@ -25,8 +24,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
 };
 
 const Chat = () => {
-  const client = useWebSocket();
   const {
+    client,
     activeUser,
     contacts,
     messages: allMessages,
@@ -104,7 +103,7 @@ const Chat = () => {
   };
 
   const contactName = contacts.get(selectedChatId)?.localDisplayName;
-  
+
   return (
     <div className={classes.container}>
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base">
@@ -114,7 +113,7 @@ const Chat = () => {
 
       <div className="h-screen w-64 text-white"></div>
       <div>
-        <CommandPanel client={client} />
+        <CommandPanel />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
@@ -123,7 +122,7 @@ const Chat = () => {
           {isConnected ? "Connected" : "Disconnected"}
         </div>
 
-        <ContactList client={client} />
+        <ContactList />
       </div>
 
       <div id="messages" className={classes.chatBody}>

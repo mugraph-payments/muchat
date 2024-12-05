@@ -1,13 +1,8 @@
 import useChatContext from "@/useChatContext";
-import { useWebSocket } from "@/useWebSocket";
 import Button from "@/components/Button/Button";
 
-type CommandPanelProps = {
-  client: ReturnType<typeof useWebSocket>;
-};
-
-const CommandPanel = ({ client }: CommandPanelProps) => {
-  const { activeUser, contactLink } = useChatContext();
+const CommandPanel = () => {
+  const { client, activeUser, contactLink } = useChatContext();
 
   return (
     <div className="space-y-4 mb-4">

@@ -2,14 +2,10 @@ import classes from "./ContactList.module.css";
 import useChatContext from "../../useChatContext";
 import Button from "../Button/Button";
 import { useRef } from "react";
-import { useWebSocket } from "../../useWebSocket";
 
-type ContactListProps = {
-  client: ReturnType<typeof useWebSocket>;
-};
-
-function ContactList({ client }: ContactListProps) {
-  const { contacts, setSelectedChatId, selectedChatId } = useChatContext();
+function ContactList() {
+  const { client, contacts, setSelectedChatId, selectedChatId } =
+    useChatContext();
   const contactInputRef = useRef<HTMLInputElement>(null);
 
   const addContact = async (connLink: string) => {
@@ -24,8 +20,6 @@ function ContactList({ client }: ContactListProps) {
     await addContact(contactInputRef.current.value);
     contactInputRef.current.value = "";
   };
-
-  console.log(contacts);
 
   return (
     <div className={classes.container}>
