@@ -106,6 +106,7 @@ const Chat = () => {
 
   const contactName = selectedContact?.localDisplayName;
   const contactAvatar = selectedContact?.profile.image;
+  const contactName = contacts.get(selectedChatId)?.localDisplayName;
 
   return (
     <div className={classes.container}>
