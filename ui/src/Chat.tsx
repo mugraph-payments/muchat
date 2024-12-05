@@ -5,8 +5,8 @@ import useChatContext from "./useChatContext";
 import { useWebSocket } from "./useWebSocket";
 import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
-import CommandPanel from "./components/CommandPanel/CommandPanel";
 import Button from "./components/Button/Button";
+import CommandConsole from "./components/CommandConsole/CommandConsole";
 
 type MessageBubbleProps = {
   heading: string;
@@ -114,7 +114,7 @@ const Chat = () => {
 
       <div className="h-screen w-64 text-white"></div>
       <div>
-        <CommandPanel client={client} />
+        <CommandConsole client={client} />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
