@@ -35,7 +35,9 @@ function ContactListv2() {
                 <span className="font-medium truncate">
                   {contact.localDisplayName}
                 </span>
-                <p className="text-sm text-theme-subtext0">{lastMessage ?? "teste"}</p>
+                <p className="text-sm text-theme-subtext0">
+                  {lastMessage ?? "teste"}
+                </p>
               </div>
             </div>
           </Button>
