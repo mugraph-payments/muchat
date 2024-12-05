@@ -120,6 +120,8 @@ export class ChatClient {
     this.callbacks.set(messageType, [...(current ?? []), cb]);
   }
 
+  // TODO: remove event listener
+
   public async sendChatCommand(command: ChatCommand): Promise<string> {
     return this.sendChatCommandStr(cmdString(command));
   }
