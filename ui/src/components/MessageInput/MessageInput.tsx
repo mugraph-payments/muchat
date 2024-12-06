@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import classes from "./MessageInput.module.css";
 import Button from "../Button/Button";
 import { commands as commandList } from "../../lib/command";
@@ -9,19 +9,33 @@ type MessageInputProps = {
 };
 
 const MessageInput: React.FC<MessageInputProps> = (props) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement[]>([]);
   const [message, setMessage] = useState("");
-  const [commands] = useState<string[]>(Object.values(commandList));
+  const [commands] = useState<string[]>([
+    ...new Set(Object.values(commandList)),
+  ]);
   const [activeCommandSuggestions, setActiveCommandSuggestions] = useState<
     string[]
   >([]);
   const [commandAutoCompleteEnabled, setCommandAutoCompleteEnabled] =
     useState(false);
+  const [focusedSuggestionIndex, setFocusedSuggestionIndex] = useState(-1);
 
   const handleKeyPress: React.KeyboardEventHandler<HTMLInputElement> = (
     event,
   ) => {
     if (event.key === "Enter") {
       props.onSubmit?.(message).then(() => setMessage(""));
+      setCommandAutoCompleteEnabled(false);
+    } else if (event.key === "Tab") {
+      event.preventDefault();
+      if (commandAutoCompleteEnabled && activeCommandSuggestions.length > 0) {
+        const nextIndex =
+          focusedSuggestionIndex === -1 ? 0 : focusedSuggestionIndex;
+        setFocusedSuggestionIndex(nextIndex);
+        suggestionsRef.current[nextIndex]?.focus();
+      }
     }
   };
 
@@ -50,6 +64,7 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
     setMessage(command);
     setCommandAutoCompleteEnabled(false);
     setActiveCommandSuggestions([]);
+    inputRef.current?.focus();
   };
 
   return (
@@ -59,8 +74,33 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
           {activeCommandSuggestions.map((command, index) => (
             <div
               key={index}
-              className={classes.suggestion}
+              ref={(el) => (suggestionsRef.current[index] = el!)}
+              className={`${classes.suggestion} ${
+                index === focusedSuggestionIndex ? classes.focused : ""
+              }`}
               onClick={() => handleSuggestionSelection(command)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleSuggestionSelection(command);
+                } else if (event.key === "Tab" && !event.shiftKey) {
+                  event.preventDefault();
+                  const nextIndex =
+                    focusedSuggestionIndex + 1 > activeCommandSuggestions.length
+                      ? -1
+                      : focusedSuggestionIndex + 1;
+                  setFocusedSuggestionIndex(nextIndex);
+                  suggestionsRef.current[nextIndex]?.focus();
+                } else if (event.key === "Tab" && event.shiftKey) {
+                  event.preventDefault();
+                  const nextIndex =
+                    focusedSuggestionIndex - 1 < 0
+                      ? -1
+                      : focusedSuggestionIndex - 1;
+                  setFocusedSuggestionIndex(nextIndex);
+                  suggestionsRef.current[nextIndex]?.focus();
+                }
+              }}
+              tabIndex={-1}
             >
               {command}
             </div>
@@ -68,6 +108,7 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
         </div>
       )}
       <input
+        ref={inputRef}
         type="text"
         placeholder="Type your message..."
         value={message}
