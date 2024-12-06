@@ -678,152 +678,224 @@ interface GroupProfile {
   image?: string;
 }
 
+export const commands: Record<ChatCommand["type"], string> = {
+  showActiveUser: "/u",
+  createActiveUser: "/_create user",
+  listUsers: "/users",
+  apiSetActiveUser: "/_user",
+  apiHideUser: "/_hide user",
+  apiUnhideUser: "/_unhide user",
+  apiMuteUser: "/_mute user",
+  apiUnmuteUser: "/_unmute user",
+  apiDeleteUser: "/_delete user",
+  startChat: "/_start",
+  apiStopChat: "/_stop",
+  setTempFolder: "/_temp_folder",
+  setFilesFolder: "/_files_folder",
+  setIncognito: "/incognito",
+  apiExportArchive: "/_db export",
+  apiImportArchive: "/_db import",
+  apiDeleteStorage: "/_db delete",
+  apiGetChats: "/_get chats",
+  apiGetChat: "/_get chat",
+  apiSendMessage: "/_send",
+  apiUpdateChatItem: "/_update item",
+  apiDeleteChatItem: "/_delete item",
+  apiDeleteMemberChatItem: "/_delete member item",
+  apiChatRead: "/_read chat",
+  apiDeleteChat: "/_delete",
+  apiClearChat: "/_clear chat",
+  apiAcceptContact: "/_accept",
+  apiRejectContact: "/_reject",
+  apiUpdateProfile: "/_profile",
+  apiSetContactAlias: "/_set alias",
+  apiParseMarkdown: "/_parse",
+  newGroup: "/_group",
+  apiAddMember: "/_add",
+  apiJoinGroup: "/_join",
+  apiRemoveMember: "/_remove",
+  apiLeaveGroup: "/_leave",
+  apiListMembers: "/_members",
+  apiUpdateGroupProfile: "/_group_profile",
+  apiCreateGroupLink: "/_create link",
+  apiGroupLinkMemberRole: "/_set link role",
+  apiDeleteGroupLink: "/_delete link",
+  apiGetGroupLink: "/_get link",
+  apiGetUserProtoServers: "/_servers",
+  apiSetUserProtoServers: "/_servers",
+  apiContactInfo: "/_info",
+  apiGroupMemberInfo: "/_info",
+  apiGetContactCode: "/_get code",
+  apiGetGroupMemberCode: "/_get code",
+  apiVerifyContact: "/_verify code",
+  apiVerifyGroupMember: "/_verify code",
+  addContact: "/connect",
+  connect: "/connect",
+  connectSimplex: "/simplex",
+  createMyAddress: "/address",
+  deleteMyAddress: "/delete_address",
+  showMyAddress: "/show_address",
+  setProfileAddress: "/profile_address",
+  addressAutoAccept: "/auto_accept",
+  apiCreateMyAddress: "/_address",
+  apiDeleteMyAddress: "/_delete_address",
+  apiShowMyAddress: "/_show_address",
+  apiSetProfileAddress: "/_profile_address",
+  apiAddressAutoAccept: "/_auto_accept",
+  receiveFile: "/freceive",
+  cancelFile: "/fcancel",
+  fileStatus: "/fstatus",
+  listContacts: "/_contacts",
+};
+
 export function cmdString(cmd: ChatCommand): string {
+  const baseCommand = commands[cmd.type];
+
   switch (cmd.type) {
     case "showActiveUser":
-      return "/u";
+      return baseCommand;
     case "createActiveUser": {
       const user: NewUser = {
         profile: cmd.profile,
         sameServers: cmd.sameServers,
         pastTimestamp: cmd.pastTimestamp,
       };
-      return `/_create user ${JSON.stringify(user)}`;
+      return `${baseCommand} ${JSON.stringify(user)}`;
     }
     case "listUsers":
-      return `/users`;
+      return baseCommand;
     case "apiSetActiveUser":
-      return `/_user ${cmd.userId}${maybeJSON(cmd.viewPwd)}`;
+      return `${baseCommand} ${cmd.userId}${maybeJSON(cmd.viewPwd)}`;
     case "apiHideUser":
-      return `/_hide user ${cmd.userId} ${JSON.stringify(cmd.viewPwd)}`;
+      return `${baseCommand} ${cmd.userId} ${JSON.stringify(cmd.viewPwd)}`;
     case "apiUnhideUser":
-      return `/_unhide user ${cmd.userId} ${JSON.stringify(cmd.viewPwd)}`;
+      return `${baseCommand} ${cmd.userId} ${JSON.stringify(cmd.viewPwd)}`;
     case "apiMuteUser":
-      return `/_mute user ${cmd.userId}`;
+      return `${baseCommand} ${cmd.userId}`;
     case "apiUnmuteUser":
-      return `/_unmute user ${cmd.userId}`;
+      return `${baseCommand} ${cmd.userId}`;
     case "apiDeleteUser":
-      return `/_delete user ${cmd.userId} del_smp=${onOff(cmd.delSMPQueues)}${maybeJSON(cmd.viewPwd)}`;
+      return `${baseCommand} ${cmd.userId} del_smp=${onOff(cmd.delSMPQueues)}${maybeJSON(cmd.viewPwd)}`;
     case "startChat":
-      return `/_start subscribe=${cmd.subscribeConnections ? "on" : "off"} expire=${cmd.enableExpireChatItems ? "on" : "off"}`;
+      return `${baseCommand} subscribe=${cmd.subscribeConnections ? "on" : "off"} expire=${cmd.enableExpireChatItems ? "on" : "off"}`;
     case "apiStopChat":
-      return "/_stop";
+      return baseCommand;
     case "setTempFolder":
-      return `/_temp_folder ${cmd.tempFolder}`;
+      return `${baseCommand} ${cmd.tempFolder}`;
     case "setFilesFolder":
-      return `/_files_folder ${cmd.filePath}`;
+      return `${baseCommand} ${cmd.filePath}`;
     case "setIncognito":
-      return `/incognito ${onOff(cmd.incognito)}`;
+      return `${baseCommand} ${onOff(cmd.incognito)}`;
     case "apiExportArchive":
-      return `/_db export ${JSON.stringify(cmd.config)}`;
+      return `${baseCommand} ${JSON.stringify(cmd.config)}`;
     case "apiImportArchive":
-      return `/_db import ${JSON.stringify(cmd.config)}`;
+      return `${baseCommand} ${JSON.stringify(cmd.config)}`;
     case "apiDeleteStorage":
-      return "/_db delete";
+      return "${baseCommand} delete";
     case "apiGetChats":
-      return `/_get chats pcc=${onOff(cmd.pendingConnections)}`;
+      return `${baseCommand} pcc=${onOff(cmd.pendingConnections)}`;
     case "apiGetChat":
-      return `/_get chat ${cmd.chatType}${cmd.chatId}${paginationStr(cmd.pagination)}`;
+      return `${baseCommand} chat ${cmd.chatType}${cmd.chatId}${paginationStr(cmd.pagination)}`;
     case "apiSendMessage":
-      return `/_send ${cmd.chatType}${cmd.chatId} json ${JSON.stringify(cmd.messages)}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId} json ${JSON.stringify(cmd.messages)}`;
     case "apiUpdateChatItem":
-      return `/_update item ${cmd.chatType}${cmd.chatId} ${cmd.chatItemId} json ${JSON.stringify(cmd.msgContent)}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId} ${cmd.chatItemId} json ${JSON.stringify(cmd.msgContent)}`;
     case "apiDeleteChatItem":
-      return `/_delete item ${cmd.chatType}${cmd.chatId} ${cmd.chatItemId} ${cmd.deleteMode}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId} ${cmd.chatItemId} ${cmd.deleteMode}`;
     case "apiDeleteMemberChatItem":
-      return `/_delete member item #${cmd.groupId} ${cmd.groupMemberId} ${cmd.itemId}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.groupMemberId} ${cmd.itemId}`;
     case "apiChatRead": {
       const itemRange = cmd.itemRange
         ? ` from=${cmd.itemRange.fromItem} to=${cmd.itemRange.toItem}`
         : "";
-      return `/_read chat ${cmd.chatType}${cmd.chatId}${itemRange}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId}${itemRange}`;
     }
     case "apiDeleteChat":
-      return `/_delete ${cmd.chatType}${cmd.chatId}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId}`;
     case "apiClearChat":
-      return `/_clear chat ${cmd.chatType}${cmd.chatId}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId}`;
     case "apiAcceptContact":
-      return `/_accept ${cmd.contactReqId}`;
+      return `${baseCommand} ${cmd.contactReqId}`;
     case "apiRejectContact":
-      return `/_reject ${cmd.contactReqId}`;
+      return `${baseCommand} ${cmd.contactReqId}`;
     case "apiUpdateProfile":
-      return `/_profile ${cmd.userId} ${JSON.stringify(cmd.profile)}`;
+      return `${baseCommand} ${cmd.userId} ${JSON.stringify(cmd.profile)}`;
     case "apiSetContactAlias":
-      return `/_set alias @${cmd.contactId} ${cmd.localAlias.trim()}`;
+      return `${baseCommand} @${cmd.contactId} ${cmd.localAlias.trim()}`;
     case "apiParseMarkdown":
-      return `/_parse ${cmd.text}`;
+      return `${baseCommand} ${cmd.text}`;
     case "newGroup":
-      return `/_group ${JSON.stringify(cmd.groupProfile)}`;
+      return `${baseCommand} ${JSON.stringify(cmd.groupProfile)}`;
     case "apiAddMember":
-      return `/_add #${cmd.groupId} ${cmd.contactId} ${cmd.memberRole}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.contactId} ${cmd.memberRole}`;
     case "apiJoinGroup":
-      return `/_join #${cmd.groupId}`;
+      return `${baseCommand} #${cmd.groupId}`;
     case "apiRemoveMember":
-      return `/_remove #${cmd.groupId} ${cmd.memberId}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.memberId}`;
     case "apiLeaveGroup":
-      return `/_leave #${cmd.groupId}`;
+      return `${baseCommand} #${cmd.groupId}`;
     case "apiListMembers":
-      return `/_members #${cmd.groupId}`;
+      return `${baseCommand} #${cmd.groupId}`;
     case "apiUpdateGroupProfile":
-      return `/_group_profile #${cmd.groupId} ${JSON.stringify(cmd.groupProfile)}`;
+      return `${baseCommand} #${cmd.groupId} ${JSON.stringify(cmd.groupProfile)}`;
     case "apiCreateGroupLink":
-      return `/_create link #${cmd.groupId} ${cmd.memberRole}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.memberRole}`;
     case "apiGroupLinkMemberRole":
-      return `/_set link role #${cmd.groupId} ${cmd.memberRole}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.memberRole}`;
     case "apiDeleteGroupLink":
-      return `/_delete link #${cmd.groupId}`;
+      return `${baseCommand} #${cmd.groupId}`;
     case "apiGetGroupLink":
-      return `/_get link #${cmd.groupId}`;
+      return `${baseCommand} #${cmd.groupId}`;
     case "apiGetUserProtoServers":
-      return `/_servers ${cmd.userId} ${cmd.serverProtocol}`;
+      return `${baseCommand} ${cmd.userId} ${cmd.serverProtocol}`;
     case "apiSetUserProtoServers":
-      return `/_servers ${cmd.userId} ${cmd.serverProtocol} ${JSON.stringify({ servers: cmd.servers })}`;
+      return `${baseCommand} ${cmd.userId} ${cmd.serverProtocol} ${JSON.stringify({ servers: cmd.servers })}`;
     case "apiContactInfo":
-      return `/_info @${cmd.contactId}`;
+      return `${baseCommand} @${cmd.contactId}`;
     case "apiGroupMemberInfo":
-      return `/_info #${cmd.groupId} ${cmd.memberId}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.memberId}`;
     case "apiGetContactCode":
-      return `/_get code @${cmd.contactId}`;
+      return `${baseCommand} @${cmd.contactId}`;
     case "apiGetGroupMemberCode":
-      return `/_get code #${cmd.groupId} ${cmd.groupMemberId}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.groupMemberId}`;
     case "apiVerifyContact":
-      return `/_verify code @${cmd.contactId}${maybe(cmd.connectionCode)}`;
+      return `${baseCommand} @${cmd.contactId}${maybe(cmd.connectionCode)}`;
     case "apiVerifyGroupMember":
-      return `/_verify code #${cmd.groupId} ${cmd.groupMemberId}${maybe(cmd.connectionCode)}`;
+      return `${baseCommand} #${cmd.groupId} ${cmd.groupMemberId}${maybe(cmd.connectionCode)}`;
     case "addContact":
-      return "/connect";
+      return baseCommand;
     case "connect":
-      return `/connect ${cmd.connReq}`;
+      return `${baseCommand} ${cmd.connReq}`;
     case "connectSimplex":
-      return "/simplex";
+      return baseCommand;
     case "createMyAddress":
-      return "/address";
+      return baseCommand;
     case "deleteMyAddress":
-      return "/delete_address";
+      return baseCommand;
     case "showMyAddress":
-      return "/show_address";
+      return baseCommand;
     case "setProfileAddress":
-      return `/profile_address ${onOff(cmd.includeInProfile)}`;
+      return `${baseCommand} ${onOff(cmd.includeInProfile)}`;
     case "addressAutoAccept":
-      return `/auto_accept ${autoAcceptStr(cmd.autoAccept)}`;
+      return `${baseCommand} ${autoAcceptStr(cmd.autoAccept)}`;
     case "apiCreateMyAddress":
-      return `/_address ${cmd.userId}`;
+      return `${baseCommand} ${cmd.userId}`;
     case "apiDeleteMyAddress":
-      return `/_delete_address ${cmd.userId}`;
+      return `${baseCommand} ${cmd.userId}`;
     case "apiShowMyAddress":
-      return `/_show_address ${cmd.userId}`;
+      return `${baseCommand} ${cmd.userId}`;
     case "apiSetProfileAddress":
-      return `/_profile_address ${cmd.userId} ${onOff(cmd.includeInProfile)}`;
+      return `${baseCommand} ${cmd.userId} ${onOff(cmd.includeInProfile)}`;
     case "apiAddressAutoAccept":
-      return `/_auto_accept ${cmd.userId} ${autoAcceptStr(cmd.autoAccept)}`;
+      return `${baseCommand} ${cmd.userId} ${autoAcceptStr(cmd.autoAccept)}`;
     case "receiveFile":
-      return `/freceive ${cmd.fileId}${cmd.filePath ? " " + cmd.filePath : ""}`;
+      return `${baseCommand} ${cmd.fileId}${cmd.filePath ? " " + cmd.filePath : ""}`;
     case "cancelFile":
-      return `/fcancel ${cmd.fileId}`;
+      return `${baseCommand} ${cmd.fileId}`;
     case "fileStatus":
-      return `/fstatus ${cmd.fileId}`;
+      return `${baseCommand} ${cmd.fileId}`;
     case "listContacts":
-      return `/_contacts ${cmd.userId}`;
+      return `${baseCommand} ${cmd.userId}`;
   }
 }
 

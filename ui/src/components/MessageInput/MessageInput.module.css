@@ -1,6 +1,8 @@
 .messageBox {
   display: flex;
   padding: 8px;
+  width: 100%;
+  position: relative;
 }
 
 .messageInput {
@@ -20,4 +22,18 @@
   cursor: pointer;
   @apply bg-theme-blue text-accent-foreground font-semibold;
   @apply hover:bg-theme-text hover:text-background;
+}
+
+.suggestions {
+  position: absolute;
+  bottom: 100%;
+  @apply bg-theme-surface1;
+  @apply flex flex-col gap-0;
+  @apply w-full max-h-44 overflow-y-auto p-2;
+}
+
+.suggestion {
+  @apply p-3;
+  @apply hover:bg-theme-surface0;
+  border-bottom: 1px solid hsl(var(--border));
 }
