@@ -1,9 +1,9 @@
 import { useWebSocket } from "@/useWebSocket";
-import Button from "@/components/Button/Button";
 import { useEffect, useRef, useState } from "react";
 import { ServerResponse } from "@/lib/response";
 import { ChatCommandMessage } from "@/lib/command";
 import useChatContext from "@/useChatContext";
+import MessageInput from "../MessageInput/MessageInput";
 
 type CommandConsoleProps = {
   client: ReturnType<typeof useWebSocket>;
@@ -13,7 +13,7 @@ const CommandConsole = ({ client }: CommandConsoleProps) => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
   const { isConnected } = useChatContext();
   const [isActive, setIsActive] = useState(true);
-  const [input, setInput] = useState("");
+
   const [consoleMessages, setConsoleMessages] = useState<
     (ServerResponse | ChatCommandMessage)[]
   >([]);
@@ -41,11 +41,10 @@ const CommandConsole = ({ client }: CommandConsoleProps) => {
     consoleBoxRef.current.scrollTop = consoleBoxRef.current?.scrollHeight + 200;
   }, [consoleMessages]);
 
-  const handleCommandSubmit = async () => {
+  const handleCommandSubmit = async (input: string) => {
     if (input.trim()) {
       const corrId = (await client.current?.sendChatCommandStr(input)) ?? "";
       setConsoleMessages((prev) => [...prev, { corrId, cmd: input }]);
-      setInput("");
     }
   };
 
@@ -66,19 +65,7 @@ const CommandConsole = ({ client }: CommandConsoleProps) => {
           </div>
         ))}
       </div>
-      <div className="flex space-x-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-grow p-2 bg-theme-surface0 text-foreground rounded"
-          placeholder="Enter command"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleCommandSubmit();
-          }}
-        />
-        <Button onClick={handleCommandSubmit}>Send</Button>
-      </div>
+      <MessageInput onSubmit={handleCommandSubmit} />
     </div>
   );
 };
