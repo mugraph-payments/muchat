@@ -745,7 +745,7 @@ export const commands: Record<ChatCommand["type"], string> = {
   receiveFile: "/freceive",
   cancelFile: "/fcancel",
   fileStatus: "/fstatus",
-  listContacts: "/_contacts",
+  listContacts: "/contacts",
 };
 
 export function cmdString(cmd: ChatCommand): string {
