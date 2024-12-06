@@ -12,7 +12,7 @@ type CommandConsoleProps = {
 const CommandConsole = ({ client }: CommandConsoleProps) => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
   const { isConnected } = useChatContext();
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(false);
 
   const [consoleMessages, setConsoleMessages] = useState<
     (ServerResponse | ChatCommandMessage)[]
@@ -50,9 +50,9 @@ const CommandConsole = ({ client }: CommandConsoleProps) => {
 
   return (
     <div
-      className={`space-y-4 mb-4 absolute top-0 left-0 w-full bg-background p-4 ${isActive ? "block" : "hidden"}`}
+      className={`space-y-4 mb-4 absolute top-0 left-0 w-full bg-background p-4 ${isActive ? "block" : "hidden"} shadow-md`}
     >
-      <h3>Command Panel</h3>
+      <h3>Console</h3>
       <div
         ref={consoleBoxRef}
         className="min-h-52 max-h-64 overflow-y-auto overflow-x-hidden bg-gray-800 p-2 rounded"
