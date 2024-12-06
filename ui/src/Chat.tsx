@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import classes from "./chat.module.css";
 import ContactList from "./components/ContactList/ContactList";
 import useChatContext from "./useChatContext";
 import { useWebSocket } from "./useWebSocket";
-import { ChatItem, Contact, ServerResponse } from "./lib/response";
+import { ChatItem, Contact } from "./lib/response";
 import { ChatType } from "./lib/command";
 import Button from "./components/Button/Button";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
+import MessageInput from "./components/MessageInput/MessageInput";
 
 type MessageBubbleProps = {
   heading: string;
@@ -27,14 +28,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
 
 const Chat = () => {
   const client = useWebSocket();
-  const {
-    activeUser,
-    contacts,
-    messages: allMessages,
-    isConnected,
-    directChats,
-    selectedChatId,
-  } = useChatContext();
+  const { activeUser, contacts, isConnected, directChats, selectedChatId } =
+    useChatContext();
   const selectedChat = useMemo(
     () =>
       selectedChatId === -1 ? [] : (directChats.get(selectedChatId) ?? []),
@@ -45,11 +40,9 @@ const Chat = () => {
     [selectedChatId, contacts],
   );
 
-  const [message, setMessage] = useState("");
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async (message: string) => {
     if (message.trim() !== "") {
-      client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
+      await client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
         {
           msgContent: {
             type: "text",
@@ -57,26 +50,7 @@ const Chat = () => {
           },
         },
       ]);
-      setMessage("");
     }
-  };
-
-  const handleKeyPress: React.KeyboardEventHandler<HTMLInputElement> = (
-    event,
-  ) => {
-    if (event.key === "Enter") {
-      handleSendMessage();
-    }
-  };
-
-  const DebugChat = (messages: ServerResponse[]) => {
-    return messages.map((msg, index) => {
-      return (
-        <MessageBubble key={index} heading={msg.resp.type}>
-          {JSON.stringify(msg)}
-        </MessageBubble>
-      );
-    });
   };
 
   const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
@@ -142,22 +116,10 @@ const Chat = () => {
 
       <div id="messages" className={classes.chatBody}>
         {selectedChatId === -1
-          ? DebugChat(allMessages)
+          ? null
           : DirectChat(selectedChat, selectedContact ?? null)}
       </div>
-      <div className={classes.messageBox}>
-        <input
-          type="text"
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyPress}
-          className={classes.messageInput}
-        />
-        <Button onClick={handleSendMessage} className={classes.sendButton}>
-          Send
-        </Button>
-      </div>
+      <MessageInput onSubmit={handleSendMessage} />
     </div>
   );
 };

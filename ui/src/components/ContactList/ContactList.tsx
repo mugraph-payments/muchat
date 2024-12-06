@@ -25,21 +25,11 @@ function ContactList({ client }: ContactListProps) {
     contactInputRef.current.value = "";
   };
 
-  console.log(contacts);
-
   return (
     <div className={classes.container}>
       <h3>Contact List</h3>
       <div className={classes.body}>
         <div className="flex gap-2">
-          <Button
-            className={`${classes.item} ${
-              selectedChatId === -1 && classes.selected
-            }`}
-            onClick={() => setSelectedChatId(-1)}
-          >
-            Debug Chat
-          </Button>
           {[...contacts].map(([cId, contact], index) => {
             return (
               <Button
