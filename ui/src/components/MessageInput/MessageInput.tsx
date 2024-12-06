@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import classes from "./MessageInput.module.css";
-import Button from "../Button/Button";
-import { commands as commandList } from "../../lib/command";
+import classes from "@/components/MessageInput/MessageInput.module.css";
+import Button from "@/components/Button/Button";
+import { commands as commandList } from "@/lib/command";
 
 type MessageInputProps = {
   onChange?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
