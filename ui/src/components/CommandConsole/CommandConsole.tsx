@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ServerResponse } from "@/lib/response";
 import { ChatCommandMessage } from "@/lib/command";
 import useChatContext from "@/useChatContext";
-import MessageInput from "../MessageInput/MessageInput";
+import MessageInput from "@/components/MessageInput/MessageInput";
 
 type CommandConsoleProps = {
   client: ReturnType<typeof useWebSocket>;
