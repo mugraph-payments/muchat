@@ -55,7 +55,7 @@ export function useWebSocket() {
     const contactsData = (await client.waitCommandResponse(
       await client.apiListContacts(activeUserData.user.userId.toString()),
     )) as CRContactsList;
-    if (contactsData) {
+    if (contactsData && contactsData.contacts?.length) {
       const newContacts = new Map();
       contactsData.contacts.forEach((c) => {
         newContacts.set(c.contactId, c);
