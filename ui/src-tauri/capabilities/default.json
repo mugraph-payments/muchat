@@ -3,5 +3,32 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": ["main"],
-  "permissions": ["core:default", "websocket:default"]
+  "permissions": [
+    "core:default",
+    "websocket:default",
+    "shell:default",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "simplex-chat",
+          "cmd": "simplex-chat",
+          "args": [
+            {
+              "validator": "-p"
+            },
+            {
+              "validator": "\\d+"
+            },
+            {
+              "validator": "-d"
+            },
+            {
+              "validator": "\\S+"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
