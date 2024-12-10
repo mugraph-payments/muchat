@@ -13,6 +13,7 @@
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-separator": "^1.1.0",
+    "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-shell": "~2",
     "@tauri-apps/plugin-websocket": "~2.0.0",
     "class-variance-authority": "^0.7.1",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
+    "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/cli": "^2.1.0",
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.12",
