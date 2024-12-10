@@ -1,14 +1,12 @@
 import { useMemo } from "react";
-import classes from "./chat.module.css";
-import ContactList from "./components/ContactList/ContactList";
-import useChatContext from "./useChatContext";
-import { useWebSocket } from "./useWebSocket";
-import { ChatItem, Contact } from "./lib/response";
-import { ChatType } from "./lib/command";
-import Button from "./components/Button/Button";
-import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
-import CommandConsole from "./components/CommandConsole/CommandConsole";
-import MessageInput from "./components/MessageInput/MessageInput";
+import classes from "@/chat.module.css";
+import ContactList from "@/components/ContactList/ContactList";
+import useChatContext from "@/useChatContext";
+import { useSimplexCli } from "@/useSimplexCli";
+import { ChatItem, Contact } from "@/lib/response";
+import { ChatType } from "@/lib/command";
+import CommandConsole from "@/components/CommandConsole/CommandConsole";
+import MessageInput from "@/components/MessageInput/MessageInput";
 
 type MessageBubbleProps = {
   heading: string;
@@ -27,7 +25,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
 };
 
 const Chat = () => {
-  const client = useWebSocket();
+  const client = useSimplexCli();
   const { activeUser, contacts, isConnected, directChats, selectedChatId } =
     useChatContext();
   const selectedChat = useMemo(

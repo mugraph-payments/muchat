@@ -2,10 +2,10 @@ import classes from "@/components/ContactList/ContactList.module.css";
 import useChatContext from "@/useChatContext";
 import Button from "../Button/Button";
 import { useRef } from "react";
-import { useWebSocket } from "@/useWebSocket";
+import { useSimplexCli } from "@/useSimplexCli";
 
 type ContactListProps = {
-  client: ReturnType<typeof useWebSocket>;
+  client: ReturnType<typeof useSimplexCli>;
 };
 
 function ContactList({ client }: ContactListProps) {
