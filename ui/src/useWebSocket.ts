@@ -8,30 +8,49 @@ import {
 import useChatContext from "./useChatContext";
 import { ChatClient } from "./lib/client";
 import { Child, Command } from "@tauri-apps/plugin-shell";
-
+import { path } from "@tauri-apps/api";
+import { exists } from "@tauri-apps/plugin-fs";
+import { DATABASE_DISPLAY_NAME, PORT } from "./config";
 // when using `"withGlobalTauri": true`, you may use
 // const WebSocket = window.__TAURI__.websocket;
 
+export async function getBaseDirectory() {
+  const dbPath = `${await path.appDataDir()}`;
+  return dbPath;
+}
+
+export async function getDatabasePath() {
+  return `${await getBaseDirectory()}/muchat-server.db_chat.db`;
+}
+
+export async function checkSimplexDatabase() {
+  const dbPath = await getDatabasePath();
+  return exists(dbPath);
+}
+
 export async function spawnSimplexServer() {
-  const command = Command.create("simplex-chat", [
-    "-p",
-    "5225",
-    "-d",
-    "~/muchat-server.db",
-  ]);
+  const dbPath = await getDatabasePath();
+  const command = Command.create("simplex-chat", ["-p", PORT, "-d", dbPath]);
+  const child = await command.spawn();
   command.on("close", (data) => {
     console.log(
       `command finished with code ${data.code} and signal ${data.signal}`,
     );
   });
   command.on("error", (error) => console.error(`command error: "${error}"`));
-  command.stdout.on("data", (line) => console.log(`command stdout: "${line}"`));
+  command.stdout.on("data", (line) => handleSimplexData(child, line));
   command.stderr.on("data", (line) => console.log(`command stderr: "${line}"`));
-
-  const child = await command.spawn();
   console.log(`Spawned process with PID ${child.pid}`);
 
   return child;
+}
+
+export async function handleSimplexData(process: Child, line: string) {
+  console.log(`> ${line}`);
+  if (line.match("No user profiles found, it will be created now.")) {
+    console.log(`Initializing local database`);
+    await process.write(DATABASE_DISPLAY_NAME + "\n");
+  }
 }
 
 export function useWebSocket() {
@@ -108,7 +127,7 @@ export function useWebSocket() {
     if (!simplexProcess.current) {
       spawnSimplexServer().then((child) => {
         simplexProcess.current = child;
-        setTimeout(() => connect(), 500);
+        setTimeout(() => connect(), 1000);
       });
     } else {
       connect();

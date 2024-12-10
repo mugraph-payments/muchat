@@ -29,6 +29,12 @@
           ]
         }
       ]
+    },
+    "shell:allow-stdin-write",
+    "fs:default",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "$APPDATA/*" }]
     }
   ]
 }
