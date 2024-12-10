@@ -40,7 +40,7 @@ export async function spawnSimplexServer() {
   command.on("error", (error) => console.error(`command error: "${error}"`));
   command.stdout.on("data", (line) => handleSimplexData(child, line));
   command.stderr.on("data", (line) => console.log(`command stderr: "${line}"`));
-  console.log(`Spawned process with PID ${child.pid}`);
+  console.log(`🟦 Spawned process with PID ${child.pid}`);
 
   return child;
 }
@@ -48,7 +48,7 @@ export async function spawnSimplexServer() {
 export async function handleSimplexData(process: Child, line: string) {
   console.log(`> ${line}`);
   if (line.match("No user profiles found, it will be created now.")) {
-    console.log(`Initializing local database`);
+    console.log(`🟨 Initializing local database`);
     await process.write(DATABASE_DISPLAY_NAME + "\n");
   }
 }
@@ -117,11 +117,25 @@ export function useWebSocket() {
     if (!firstRun.current) return;
     firstRun.current = false;
 
-    async function connect() {
-      console.log("🟩 Connecting...");
-      webSocketClient.current = await ChatClient.create();
-      setIsConnected(true);
-      initChatClient();
+    async function connect(retryIntervalMs = 1000, retries = 3) {
+      try {
+        webSocketClient.current = await ChatClient.create();
+        setIsConnected(true);
+        initChatClient();
+        console.log("🟩 Connected!");
+      } catch (error) {
+        if (retries > 0) {
+          console.log(
+            `🟨 Connection refused. Retrying in ${retryIntervalMs / 1000}s ... (${retries})`,
+          );
+          setTimeout(
+            () => connect(retryIntervalMs, retries - 1),
+            retryIntervalMs,
+          );
+        } else {
+          console.log(`🟥 Connection Refused!\n`, error);
+        }
+      }
     }
 
     if (!simplexProcess.current) {
@@ -134,7 +148,7 @@ export function useWebSocket() {
     }
 
     return () => {
-      console.log("🟥 Disconnecting");
+      // console.log("🟥 Disconnecting");
       webSocketClient.current?.disconnect();
     };
   }, [webSocketClient, setIsConnected, initChatClient]);
