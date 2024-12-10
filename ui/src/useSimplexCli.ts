@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CRActiveUser,
   CRContactsList,
@@ -6,8 +6,8 @@ import {
   ServerResponse,
 } from "./lib/response";
 import useChatContext from "./useChatContext";
-import { ChatClient } from "./lib/client";
-import { Child, Command } from "@tauri-apps/plugin-shell";
+import { ChatClient, ChatServer } from "./lib/client";
+import { Child, Command, TerminatedPayload } from "@tauri-apps/plugin-shell";
 import { path } from "@tauri-apps/api";
 import { exists } from "@tauri-apps/plugin-fs";
 import { DATABASE_DISPLAY_NAME, PORT } from "./config";
@@ -28,34 +28,56 @@ export async function checkSimplexDatabase() {
   return exists(dbPath);
 }
 
-export async function spawnSimplexServer() {
+export enum SimplexError {
+  AddressInUse,
+}
+
+export async function spawnSimplexServer(
+  serverDetails: ChatServer,
+  onClose: (data: TerminatedPayload, error?: SimplexError) => void,
+) {
   const dbPath = await getDatabasePath();
-  const command = Command.create("simplex-chat", ["-p", PORT, "-d", dbPath]);
+  const command = Command.create("simplex-chat", [
+    "-p",
+    serverDetails.port ?? PORT,
+    "-d",
+    dbPath,
+  ]);
   const child = await command.spawn();
+  let error_type: SimplexError | null = null;
+
   command.on("close", (data) => {
-    console.log(
-      `command finished with code ${data.code} and signal ${data.signal}`,
-    );
+    onClose(data, error_type ?? undefined);
   });
-  command.on("error", (error) => console.error(`command error: "${error}"`));
+  command.on("error", (error) => {
+    console.error(`command error: "${error}"`);
+  });
   command.stdout.on("data", (line) => handleSimplexData(child, line));
-  command.stderr.on("data", (line) => console.log(`command stderr: "${line}"`));
+  command.stderr.on("data", (line) => handleSimplexStderr(line));
   console.log(`🟦 Spawned process with PID ${child.pid}`);
+
+  async function handleSimplexStderr(line: string) {
+    if (line.match("Address already in use")) {
+      error_type = SimplexError.AddressInUse;
+    }
+  }
+
+  async function handleSimplexData(process: Child, line: string) {
+    console.log(`> ${line}`);
+    if (line.match("No user profiles found, it will be created now.")) {
+      console.log(`🟨 Initializing local database`);
+      await process.write(DATABASE_DISPLAY_NAME + "\n");
+    }
+  }
 
   return child;
 }
 
-export async function handleSimplexData(process: Child, line: string) {
-  console.log(`> ${line}`);
-  if (line.match("No user profiles found, it will be created now.")) {
-    console.log(`🟨 Initializing local database`);
-    await process.write(DATABASE_DISPLAY_NAME + "\n");
-  }
-}
-
-export function useWebSocket() {
+export function useSimplexCli() {
+  const connectionTimeout = useRef<NodeJS.Timeout>();
   const simplexProcess = useRef<Child | null>(null);
   const webSocketClient = useRef<ChatClient | null>(null);
+  const [serverDetails, setServerDetails] = useState(ChatClient.localServer);
   const firstRun = useRef(true);
   const {
     setIsConnected,
@@ -119,7 +141,7 @@ export function useWebSocket() {
 
     async function connect(retryIntervalMs = 1000, retries = 3) {
       try {
-        webSocketClient.current = await ChatClient.create();
+        webSocketClient.current = await ChatClient.create(serverDetails);
         setIsConnected(true);
         initChatClient();
         console.log("🟩 Connected!");
@@ -128,7 +150,7 @@ export function useWebSocket() {
           console.log(
             `🟨 Connection refused. Retrying in ${retryIntervalMs / 1000}s ... (${retries})`,
           );
-          setTimeout(
+          connectionTimeout.current = setTimeout(
             () => connect(retryIntervalMs, retries - 1),
             retryIntervalMs,
           );
@@ -138,20 +160,53 @@ export function useWebSocket() {
       }
     }
 
+    async function handlePortInUse() {
+      // Update port and try again
+      ChatClient.localServer = {
+        ...ChatClient.localServer,
+        port: (parseInt(ChatClient.localServer.port ?? PORT) + 1).toString(),
+      };
+
+      // Disconnect WebSocket if connected
+      if (webSocketClient.current) {
+        await webSocketClient.current.disconnect();
+        webSocketClient.current = null;
+      }
+
+      if (connectionTimeout.current) {
+        clearTimeout(connectionTimeout.current);
+      }
+      firstRun.current = true;
+      simplexProcess.current = null;
+
+      setServerDetails(ChatClient.localServer);
+    }
+
     if (!simplexProcess.current) {
-      spawnSimplexServer().then((child) => {
+      spawnSimplexServer(serverDetails, (_, error) => {
+        if (error === SimplexError.AddressInUse) {
+          console.log(`🟨 Address already in use. Trying next available.`);
+          handlePortInUse();
+          simplexProcess.current = null;
+        }
+      }).then((child) => {
         simplexProcess.current = child;
-        setTimeout(() => connect(), 1000);
+        connectionTimeout.current = setTimeout(() => connect(), 1000);
       });
     } else {
       connect();
     }
 
     return () => {
-      // console.log("🟥 Disconnecting");
+      // webSocketClient.current?.disconnect();
+    };
+  }, [webSocketClient, setIsConnected, initChatClient, serverDetails]);
+
+  useEffect(() => {
+    return () => {
       webSocketClient.current?.disconnect();
     };
-  }, [webSocketClient, setIsConnected, initChatClient]);
+  }, [webSocketClient]);
 
   return webSocketClient;
 }

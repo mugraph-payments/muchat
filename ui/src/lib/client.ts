@@ -15,11 +15,6 @@ export interface ChatServer {
   readonly port?: string;
 }
 
-export const localServer: ChatServer = {
-  host: HOST,
-  port: PORT,
-};
-
 export type ChatClientEvents = "message" | ChatResponseTag;
 export type ChatClientMessageBundle = ChatCommandMessage & {
   response?: ChatResponse;
@@ -32,32 +27,36 @@ export enum ConnReqType {
 
 export class ChatClient {
   private corrId = 0;
-  private static instance: ChatClient;
+  private static instance: ChatClient | null = null;
   private ws: WebSocket;
   private callbacks: Map<string, ((data: ServerResponse) => void)[]> =
     new Map();
   private sentCommands: Map<string, ChatClientMessageBundle> = new Map();
   public isConnected = false;
+  static localServer: ChatServer = {
+    host: HOST,
+    port: PORT,
+  };
 
   private constructor(ws: WebSocket) {
     this.ws = ws;
   }
 
   static async create(
-    serverDetails: ChatServer | string = localServer,
+    serverDetails: ChatServer | string = ChatClient.localServer,
   ): Promise<ChatClient> {
     if (ChatClient.instance) return ChatClient.instance;
-    const ws = await WebSocket.connect(
+    const simplexEndpoint =
       typeof serverDetails === "string"
         ? serverDetails
-        : `${serverDetails.host}:${serverDetails.port}`,
-    );
+        : `${serverDetails.host}:${serverDetails.port}`;
+    console.log(`🟦 Connecting to ${simplexEndpoint}`);
+    const ws = await WebSocket.connect(simplexEndpoint);
     const chatClient = new ChatClient(ws);
     chatClient.setIsConnected = true;
     ChatClient.instance = chatClient;
 
     ws.addListener(chatClient.handleServerMessages.bind(chatClient));
-
     return ChatClient.instance;
   }
 
@@ -82,7 +81,7 @@ export class ChatClient {
         break;
       }
       case "Close":
-        this.disconnect();
+        // this.disconnect();
         break;
       default:
         return;
@@ -205,7 +204,9 @@ export class ChatClient {
   }
 
   public async disconnect() {
-    await this.ws.disconnect();
+    console.log(`🟥 Disconnecting ...`);
+    await this.ws.disconnect().catch((e) => console.error(e));
+    ChatClient.instance = null;
     this.setIsConnected = false;
   }
 
