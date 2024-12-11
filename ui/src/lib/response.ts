@@ -7,7 +7,7 @@ import {
   LocalProfile,
   ServerProtocol,
   ServerCfg,
-} from "./command";
+} from "@/lib/command";
 
 export type ServerResponse = {
   corrId: string;

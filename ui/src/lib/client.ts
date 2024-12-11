@@ -1,5 +1,5 @@
 import WebSocket, { Message } from "@tauri-apps/plugin-websocket";
-import { HOST, PORT } from "../config";
+import { HOST, PORT } from "@/config";
 import {
   ChatCommand,
   ChatCommandMessage,
@@ -7,8 +7,8 @@ import {
   ChatType,
   cmdString,
   ComposedMessage,
-} from "./command";
-import { ChatResponse, ChatResponseTag, ServerResponse } from "./response";
+} from "@/lib/command";
+import { ChatResponse, ChatResponseTag, ServerResponse } from "@/lib/response";
 
 export interface ChatServer {
   readonly host: string;
@@ -119,6 +119,8 @@ export class ChatClient {
     const current = this.callbacks.get(messageType);
     this.callbacks.set(messageType, [...(current ?? []), cb]);
   }
+
+  // TODO: remove event listener
 
   public async sendChatCommand(command: ChatCommand): Promise<string> {
     return this.sendChatCommandStr(cmdString(command));
