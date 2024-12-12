@@ -47,6 +47,13 @@ class SimplexCli {
     clearTimeout(this.readyTimeout);
     this.callbacks = callbacks;
     if (!this.process) {
+      // Kill lingering process when manually reloading
+      const oldPid = sessionStorage.getItem("simplex-pid");
+      if (oldPid) {
+        const oldChild = new Child(parseInt(oldPid));
+        await oldChild.kill();
+      }
+
       const dbPath = await this.getDatabasePath();
       const command = Command.create("simplex-chat", [
         "-p",
@@ -71,6 +78,9 @@ class SimplexCli {
       console.log(`🟦 Spawned process with PID ${this.process.pid}`);
     }
 
+    sessionStorage.setItem("simplex-pid", `${this.process?.pid}`);
+
+    // TODO: find a more reliable way to emit ready event
     this.readyTimeout = setTimeout(() => this.callbacks?.onReady(), 1000);
     return this.process;
   }
