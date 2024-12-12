@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
+  AChatItem,
   CRActiveUser,
+  CRApiChats,
   CRContactsList,
   CRUserContactLink,
   ServerResponse,
@@ -74,7 +76,25 @@ export function useSimplexCli() {
       await client.apiGetUserAddress(),
     )) as CRUserContactLink;
     setContactLink(contactLink.contactLink ?? null);
-  }, [setActiveUser, setContacts, serverResponseReducer, setContactLink]);
+
+    const chatsData = (await client.waitCommandResponse(
+      await client.apiGetChats(activeUserData.user.userId),
+    )) as CRApiChats;
+    chatsData?.chats?.forEach((chat) => {
+      setDirectChats(
+        chat.chatItems.map((chatItem) => ({
+          chatInfo: chat.chatInfo,
+          chatItem,
+        })) as AChatItem[],
+      );
+    });
+  }, [
+    setDirectChats,
+    setActiveUser,
+    setContacts,
+    serverResponseReducer,
+    setContactLink,
+  ]);
 
   const connect = useCallback(
     async (retryIntervalMs = 1000, retries = 3) => {

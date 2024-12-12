@@ -793,7 +793,7 @@ export function cmdString(cmd: ChatCommand): string {
     case "apiDeleteStorage":
       return "${baseCommand} delete";
     case "apiGetChats":
-      return `${baseCommand} pcc=${onOff(cmd.pendingConnections)}`;
+      return `${baseCommand} ${cmd.userId}`; /*pcc=${onOff(cmd.pendingConnections)}*/
     case "apiGetChat":
       return `${baseCommand} chat ${cmd.chatType}${cmd.chatId}${paginationStr(cmd.pagination)}`;
     case "apiSendMessage":
@@ -895,7 +895,7 @@ export function cmdString(cmd: ChatCommand): string {
     case "fileStatus":
       return `${baseCommand} ${cmd.fileId}`;
     case "listContacts":
-      return `${baseCommand} ${cmd.userId}`;
+      return `${baseCommand}`; /*${cmd.userId}*/
   }
 }
 
