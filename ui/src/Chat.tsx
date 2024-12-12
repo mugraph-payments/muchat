@@ -7,6 +7,7 @@ import { ChatItem, Contact, ServerResponse } from "./lib/response";
 import { ChatType } from "./lib/command";
 import CommandPanel from "./components/CommandPanel/CommandPanel";
 import Button from "./components/Button/Button";
+import { Avatar, AvatarFallback } from "./components/Avatar";
 
 type MessageBubbleProps = {
   heading: string;
@@ -104,10 +105,15 @@ const Chat = () => {
   };
 
   const contactName = contacts.get(selectedChatId)?.localDisplayName;
-  
+
   return (
     <div className={classes.container}>
-      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base">
+      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2">
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback>
+            {contactName ? contactName.charAt(0).toUpperCase() : "D"}
+          </AvatarFallback>
+        </Avatar>
         <h2>{contactName ?? "Debug"}</h2>
       </div>
       <div className="bg-gray-800"></div>
