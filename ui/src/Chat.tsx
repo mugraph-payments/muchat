@@ -108,13 +108,15 @@ const Chat = () => {
 
   return (
     <div className={classes.container}>
-      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2">
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarFallback>
-            {contactName ? contactName.charAt(0).toUpperCase() : "D"}
-          </AvatarFallback>
-        </Avatar>
-        <h2>{contactName ?? "Debug"}</h2>
+      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback>
+              {contactName ? contactName.charAt(0).toUpperCase() : "D"}
+            </AvatarFallback>
+          </Avatar>
+          <h2>{contactName ?? "Debug"}</h2>
+        </div>
       </div>
       <div className="bg-gray-800"></div>
 
