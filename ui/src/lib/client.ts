@@ -10,7 +10,7 @@ import {
 } from "@/lib/command";
 import { ChatResponse, ChatResponseTag, ServerResponse } from "@/lib/response";
 
-export interface ChatServer {
+export interface SimplexServerDetails {
   readonly host: string;
   readonly port?: string;
 }
@@ -33,7 +33,7 @@ export class ChatClient {
     new Map();
   private sentCommands: Map<string, ChatClientMessageBundle> = new Map();
   public isConnected = false;
-  static localServer: ChatServer = {
+  static localServer: SimplexServerDetails = {
     host: HOST,
     port: PORT,
   };
@@ -43,13 +43,15 @@ export class ChatClient {
   }
 
   static async create(
-    serverDetails: ChatServer | string = ChatClient.localServer,
+    serverDetails: SimplexServerDetails | string = ChatClient.localServer,
   ): Promise<ChatClient> {
+    // TODO: detect change in server endpoint and disconnect if needed
     if (ChatClient.instance) return ChatClient.instance;
     const simplexEndpoint =
       typeof serverDetails === "string"
         ? serverDetails
         : `${serverDetails.host}:${serverDetails.port}`;
+
     console.log(`🟦 Connecting to ${simplexEndpoint}`);
     const ws = await WebSocket.connect(simplexEndpoint);
     const chatClient = new ChatClient(ws);

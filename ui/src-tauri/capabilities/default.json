@@ -31,6 +31,7 @@
       ]
     },
     "shell:allow-stdin-write",
+    "shell:allow-kill",
     "fs:default",
     {
       "identifier": "fs:allow-exists",
