@@ -833,7 +833,7 @@ export interface UserPwdHash {
   salt: string;
 }
 
-interface UserInfo {
+export interface UserInfo {
   user: User;
   unreadCount: number;
 }
