@@ -2,14 +2,10 @@ import classes from "@/components/ContactList/ContactList.module.css";
 import useChatContext from "@/useChatContext";
 import Button from "../Button/Button";
 import { useRef } from "react";
-import { useSimplexCli } from "@/useSimplexCli";
 
-type ContactListProps = {
-  client: ReturnType<typeof useSimplexCli>;
-};
-
-function ContactList({ client }: ContactListProps) {
-  const { contacts, setSelectedChatId, selectedChatId } = useChatContext();
+function ContactList() {
+  const { client, contacts, setSelectedChatId, selectedChatId } =
+    useChatContext();
   const contactInputRef = useRef<HTMLInputElement>(null);
 
   const addContact = async (connLink: string) => {

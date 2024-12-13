@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import classes from "@/chat.module.css";
 import ContactList from "@/components/ContactList/ContactList";
 import useChatContext from "@/useChatContext";
-import { useSimplexCli } from "@/useSimplexCli";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
 import CommandConsole from "@/components/CommandConsole/CommandConsole";
@@ -24,13 +23,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
   );
 };
 
-type ChatProps = {
-  client: ReturnType<typeof useSimplexCli>;
-};
-
-const Chat: React.FC<ChatProps> = ({ client }) => {
-  const { activeUser, contacts, isConnected, directChats, selectedChatId } =
-    useChatContext();
+const Chat = () => {
+  const {
+    client,
+    activeUser,
+    contacts,
+    isConnected,
+    directChats,
+    selectedChatId,
+  } = useChatContext();
   const selectedChat = useMemo(
     () =>
       selectedChatId === -1 ? [] : (directChats.get(selectedChatId) ?? []),
@@ -103,7 +104,7 @@ const Chat: React.FC<ChatProps> = ({ client }) => {
 
       <div className="h-screen w-64 text-white"></div>
       <div>
-        <CommandConsole client={client} />
+        <CommandConsole />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
@@ -112,7 +113,7 @@ const Chat: React.FC<ChatProps> = ({ client }) => {
           {isConnected ? "Connected" : "Disconnected"}
         </div>
 
-        <ContactList client={client} />
+        <ContactList />
       </div>
 
       <div id="messages" className={classes.chatBody}>
