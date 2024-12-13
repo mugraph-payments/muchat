@@ -7,6 +7,7 @@ import {
   ChatType,
   cmdString,
   ComposedMessage,
+  Profile,
 } from "@/lib/command";
 import { ChatResponse, ChatResponseTag, ServerResponse } from "@/lib/response";
 
@@ -182,8 +183,28 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "listUsers" });
   }
 
+  async apiCreateUser(
+    profile: Profile,
+    sameServers?: boolean,
+    pastTimestamp?: boolean,
+  ) {
+    return await this.sendChatCommand({
+      type: "createActiveUser",
+      profile,
+      sameServers: sameServers || true,
+      pastTimestamp: pastTimestamp || false,
+    });
+  }
+
   async apiGetChats(userId: number) {
     return await this.sendChatCommand({ type: "apiGetChats", userId });
+  }
+
+  async apiSetActiveUser(userId: number) {
+    return await this.sendChatCommand({
+      type: "apiSetActiveUser",
+      userId,
+    });
   }
 
   async apiGetChat(

@@ -765,7 +765,7 @@ export function cmdString(cmd: ChatCommand): string {
     case "listUsers":
       return baseCommand;
     case "apiSetActiveUser":
-      return `${baseCommand} ${cmd.userId}${maybeJSON(cmd.viewPwd)}`;
+      return `${baseCommand} ${cmd.userId} ${maybeJSON(cmd.viewPwd)}`;
     case "apiHideUser":
       return `${baseCommand} ${cmd.userId} ${JSON.stringify(cmd.viewPwd)}`;
     case "apiUnhideUser":
