@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
-  AChatItem,
   CRActiveUser,
-  CRApiChats,
   CRContactsList,
+  CRNewChatItems,
   CRUserContactLink,
   CRUsersList,
   ServerResponse,
 } from "./lib/response";
-import useChatContext from "./useChatContext";
 import { ChatClient } from "./lib/client";
 import SimplexCli, { SpawnArgs } from "./lib/simplex";
 // when using `"withGlobalTauri": true`, you may use
@@ -18,31 +16,44 @@ export enum SimplexError {
   AddressInUse,
 }
 
-export function useSimplexCli() {
+type useSimplexProps = {
+  onData?: (data: ServerResponse) => void;
+  onNewChatItems?: (data: CRNewChatItems) => void;
+  onActiveUser?: (data: CRActiveUser) => void;
+  onUserList?: (data: CRUsersList) => void;
+  onConnected?: (isConnected: boolean) => void;
+  onUserContactLink?: (data: CRUserContactLink) => void;
+  onContactsList?: (data: CRContactsList) => void;
+};
+
+export function useSimplexCli({ ...callbacks }: useSimplexProps) {
   const cli = useRef<SimplexCli>(SimplexCli.getInstance());
   const connectionTimeout = useRef<NodeJS.Timeout>();
   const webSocketClient = useRef<ChatClient | null>(null);
   const firstRun = useRef(true);
-  const {
-    setIsConnected,
-    addMessage,
-    setDirectChats,
-    setActiveUser,
-    setContacts,
-    setContactLink,
-    setUsers,
-  } = useChatContext();
 
   const serverResponseReducer = useCallback(
     (data: ServerResponse) => {
-      addMessage(data);
+      callbacks.onData?.(data);
       switch (data.resp.type) {
         case "newChatItems": {
-          setDirectChats(data.resp.chatItems);
+          callbacks.onNewChatItems?.(data.resp);
           break;
         }
         case "activeUser": {
-          setActiveUser(data.resp.user);
+          callbacks.onActiveUser?.(data.resp);
+          break;
+        }
+        case "userContactLink": {
+          callbacks.onUserContactLink?.(data.resp);
+          break;
+        }
+        case "usersList": {
+          callbacks.onUserList?.(data.resp);
+          break;
+        }
+        case "contactsList": {
+          callbacks.onContactsList?.(data.resp);
           break;
         }
         default: {
@@ -50,7 +61,7 @@ export function useSimplexCli() {
         }
       }
     },
-    [addMessage, setDirectChats, setActiveUser],
+    [callbacks],
   );
 
   const initChatClient = useCallback(async () => {
@@ -58,57 +69,15 @@ export function useSimplexCli() {
     if (!client) throw new Error("Client is undefined");
 
     client.on("message", serverResponseReducer);
-    await client.waitCommandResponse(await client.apiCreateAddress());
 
-    const users = (await client.waitCommandResponse(
-      await client.apiListUsers(),
-    )) as CRUsersList;
-    if (users.users.length) {
-      setUsers(users.users);
-    }
-
-    const activeUserData = (await client.waitCommandResponse(
-      await client.apiGetActiveUser(),
-    )) as CRActiveUser;
-    setActiveUser(activeUserData.user);
-    await client.apiSetAutoAccept();
-
-    if (!activeUserData.user) return;
-    const contactsData = (await client.waitCommandResponse(
-      await client.apiListContacts(activeUserData.user.userId.toString()),
-    )) as CRContactsList;
-    if (contactsData && contactsData.contacts?.length) {
-      const newContacts = new Map();
-      contactsData.contacts.forEach((c) => {
-        newContacts.set(c.contactId, c);
-      });
-      setContacts(newContacts);
-    }
-
-    const contactLink = (await client.waitCommandResponse(
-      await client.apiGetUserAddress(),
-    )) as CRUserContactLink;
-    setContactLink(contactLink.contactLink ?? null);
-
-    const chatsData = (await client.waitCommandResponse(
-      await client.apiGetChats(activeUserData.user.userId),
-    )) as CRApiChats;
-    chatsData?.chats?.forEach((chat) => {
-      setDirectChats(
-        chat.chatItems.map((chatItem) => ({
-          chatInfo: chat.chatInfo,
-          chatItem,
-        })) as AChatItem[],
-      );
-    });
-  }, [
-    setUsers,
-    setDirectChats,
-    setActiveUser,
-    setContacts,
-    serverResponseReducer,
-    setContactLink,
-  ]);
+    await Promise.all([
+      client.apiCreateAddress(),
+      client.apiListUsers(),
+      client.apiGetActiveUser(),
+      client.apiGetActiveUser(),
+      client.apiSetAutoAccept(),
+    ]);
+  }, [serverResponseReducer]);
 
   const connect = useCallback(
     async (retryIntervalMs = 1000, retries = 3) => {
@@ -116,7 +85,7 @@ export function useSimplexCli() {
         webSocketClient.current = await ChatClient.create(
           cli.current.options.serverDetails,
         );
-        setIsConnected(true);
+        callbacks.onConnected?.(true);
         initChatClient();
         console.log("🟩 Connected!");
       } catch (error) {
@@ -133,7 +102,7 @@ export function useSimplexCli() {
         }
       }
     },
-    [setIsConnected, initChatClient],
+    [callbacks, initChatClient],
   );
 
   const disconnect = useCallback(async () => {

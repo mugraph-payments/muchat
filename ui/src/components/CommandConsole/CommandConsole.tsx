@@ -1,17 +1,12 @@
-import { useSimplexCli } from "@/useSimplexCli";
 import { useEffect, useRef, useState } from "react";
 import { ServerResponse } from "@/lib/response";
 import { ChatCommandMessage } from "@/lib/command";
 import useChatContext from "@/useChatContext";
 import MessageInput from "@/components/MessageInput/MessageInput";
 
-type CommandConsoleProps = {
-  client: ReturnType<typeof useSimplexCli>;
-};
-
-const CommandConsole = ({ client }: CommandConsoleProps) => {
+const CommandConsole = () => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
-  const { isConnected } = useChatContext();
+  const { client, isConnected } = useChatContext();
   const [isActive, setIsActive] = useState(false);
 
   const [consoleMessages, setConsoleMessages] = useState<
