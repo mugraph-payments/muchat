@@ -24,8 +24,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
   );
 };
 
-const Chat = () => {
-  const client = useSimplexCli();
+type ChatProps = {
+  client: ReturnType<typeof useSimplexCli>;
+};
+
+const Chat: React.FC<ChatProps> = ({ client }) => {
   const { activeUser, contacts, isConnected, directChats, selectedChatId } =
     useChatContext();
   const selectedChat = useMemo(
