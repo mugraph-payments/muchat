@@ -5,6 +5,7 @@ import {
   CRApiChats,
   CRContactsList,
   CRUserContactLink,
+  CRUsersList,
   ServerResponse,
 } from "./lib/response";
 import useChatContext from "./useChatContext";
@@ -29,6 +30,7 @@ export function useSimplexCli() {
     setActiveUser,
     setContacts,
     setContactLink,
+    setUsers,
   } = useChatContext();
 
   const serverResponseReducer = useCallback(
@@ -39,12 +41,16 @@ export function useSimplexCli() {
           setDirectChats(data.resp.chatItems);
           break;
         }
+        case "activeUser": {
+          setActiveUser(data.resp.user);
+          break;
+        }
         default: {
           break;
         }
       }
     },
-    [addMessage, setDirectChats],
+    [addMessage, setDirectChats, setActiveUser],
   );
 
   const initChatClient = useCallback(async () => {
@@ -53,6 +59,13 @@ export function useSimplexCli() {
 
     client.on("message", serverResponseReducer);
     await client.waitCommandResponse(await client.apiCreateAddress());
+
+    const users = (await client.waitCommandResponse(
+      await client.apiListUsers(),
+    )) as CRUsersList;
+    if (users.users.length) {
+      setUsers(users.users);
+    }
 
     const activeUserData = (await client.waitCommandResponse(
       await client.apiGetActiveUser(),
@@ -89,6 +102,7 @@ export function useSimplexCli() {
       );
     });
   }, [
+    setUsers,
     setDirectChats,
     setActiveUser,
     setContacts,

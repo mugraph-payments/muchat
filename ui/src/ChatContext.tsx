@@ -7,9 +7,12 @@ import {
   UserContactLink,
   ServerResponse,
   User,
+  UserInfo,
 } from "@/lib/response";
 
-interface ChatContextType {
+export interface ChatContextType {
+  users: UserInfo[];
+  setUsers: (users: UserInfo[]) => void,
   isConnected: boolean;
   setIsConnected: (c: boolean) => void;
   messages: ServerResponse[];
@@ -40,12 +43,15 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedChatId, setSelectedChatId] = useState(-1);
   const [activeUser, setActiveUser] = useState<null | User>(null);
   const [contactLink, setContactLink] = useState<UserContactLink | null>(null);
+  const [users, setUsers] = useState<UserInfo[]>([]);
 
   return (
     <ChatContext.Provider
       value={{
         isConnected,
         activeUser,
+        users,
+        setUsers,
         setActiveUser,
         contactLink,
         setContactLink,
