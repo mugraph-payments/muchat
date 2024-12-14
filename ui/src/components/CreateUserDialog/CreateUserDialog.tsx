@@ -51,6 +51,21 @@ const CreateUserDialog = () => {
     [],
   );
 
+  const handleImageUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          handleProfileUpdate("image", base64String);
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [handleProfileUpdate],
+  );
+
   const resetDialog = useCallback(() => {
     setProfile(EmptyProfile);
     setError(null);
@@ -65,6 +80,17 @@ const CreateUserDialog = () => {
           <DialogTitle>Create a new user</DialogTitle>
         </DialogHeader>
         <div className="space-y-8">
+          <div>
+            {profile.image && (
+              <div className="mt-4">
+                <img
+                  src={profile.image}
+                  alt="Profile Preview"
+                  className="max-w-full h-auto max-h-24 rounded-md"
+                />
+              </div>
+            )}
+          </div>
           <form className="space-y-4">
             <Input
               placeholder="Display Name"
@@ -76,7 +102,7 @@ const CreateUserDialog = () => {
               placeholder="Full Name"
               onChange={(e) => handleProfileUpdate("fullName", e.target.value)}
             ></Input>
-            {/* TODO: add image picker and set profile picture */}
+            <Input type="file" accept="image/*" onChange={handleImageUpload} />
           </form>
           <div className="flex flex-col gap-2">
             <span className="text-red-500">
