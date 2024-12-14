@@ -36,7 +36,6 @@ const CreateUserDialog = () => {
             break;
         }
       } else if (data?.type === "activeUser") {
-        await client.current?.apiListUsers();
         setError(null);
         setProfile(EmptyProfile);
         setSubmitted(true);
