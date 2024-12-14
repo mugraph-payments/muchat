@@ -196,6 +196,14 @@ export class ChatClient {
     });
   }
 
+  async apiDeleteUser(userId: number, delSMPQueues = true) {
+    return await this.sendChatCommand({
+      type: "apiDeleteUser",
+      userId,
+      delSMPQueues,
+    });
+  }
+
   async apiGetChats(userId: number) {
     return await this.sendChatCommand({ type: "apiGetChats", userId });
   }

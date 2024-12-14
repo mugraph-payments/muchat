@@ -2,7 +2,7 @@ import useChatContext from "@/useChatContext";
 import ContactListv2 from "@/components/ContactList/ContactListV2";
 import { Separator } from "@/components/Separator";
 import ActiveUserToggle from "../ActiveUserSelect/ActiveUserSelect";
-import CreateUserDialog from "../CreateUserDialog/CreateUserDialog";
+import { UserSettingsDialog } from "../features/user/UserSettings";
 
 function SideBar() {
   const { client, activeUser, contacts, users } = useChatContext();
@@ -14,11 +14,14 @@ function SideBar() {
         <ContactListv2 />
       </div>
       <div className="mt-auto space-y-2">
-        <CreateUserDialog />
+        <UserSettingsDialog />
         <ActiveUserToggle
           activeUser={activeUser}
           users={users}
-          onSelect={(userId) => client.current?.apiSetActiveUser(userId)}
+          onSelect={(userId) => {
+            console.log(`selecting ${userId}`);
+            client.current?.apiSetActiveUser(userId);
+          }}
         />
       </div>
     </div>

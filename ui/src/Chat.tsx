@@ -4,8 +4,9 @@ import ContactList from "@/components/ContactList/ContactList";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
-import CommandConsole from "@/components/CommandConsole/CommandConsole";
+// import CommandConsole from "@/components/CommandConsole/CommandConsole";
 import MessageInput from "@/components/MessageInput/MessageInput";
+import CommandConsole from "./components/CommandConsole/CommandConsole";
 
 type MessageBubbleProps = {
   heading: string;
