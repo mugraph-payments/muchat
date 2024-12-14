@@ -11,15 +11,22 @@ type ActiveUserSelectProps = Pick<ChatContextType, "users" | "activeUser"> & {
   onSelect: (userId: number) => void;
 };
 
-const ActiveUserSelect = ({ users, activeUser, onSelect }: ActiveUserSelectProps) => {
+const ActiveUserSelect = ({
+  users,
+  activeUser,
+  onSelect,
+}: ActiveUserSelectProps) => {
   return (
-    <Select value={activeUser?.userId.toString()} onValueChange={(newUserId) => onSelect(parseInt(newUserId))}>
+    <Select
+      value={activeUser?.userId.toString()}
+      onValueChange={(newUserId) => onSelect(parseInt(newUserId))}
+    >
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Users" />
       </SelectTrigger>
       <SelectContent>
         {users.map(({ user }) => (
-          <SelectItem value={user.userId.toString()}>
+          <SelectItem value={user.userId.toString()} key={user.userId}>
             {user.profile.displayName}
           </SelectItem>
         ))}
