@@ -26,7 +26,7 @@ const ActiveUserSelect = ({
       </SelectTrigger>
       <SelectContent>
         {users.map(({ user }) => (
-          <SelectItem value={user.userId.toString()}>
+          <SelectItem value={user.userId.toString()} key={user.userId}>
             {user.profile.displayName}
           </SelectItem>
         ))}
