@@ -92,6 +92,10 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
     onData: addMessage,
     onConnected: setIsConnected,
     onActiveUser: (data) => {
+      if (!users.find(u => u.user.userId === data.user.userId)) {
+        // Update users to include new user
+        client.current?.apiListUsers();
+      }
       client.current?.apiListContacts(data.user.userId.toString());
       setActiveUser(data.user);
     },
