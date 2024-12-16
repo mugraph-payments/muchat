@@ -43,11 +43,8 @@ const CommandConsole = () => {
 
   const handleCommandSubmit = async (input: string) => {
     if (input.trim()) {
-      const corrId = (await client.current?.sendChatCommandStr(input)) ?? "";
-      setConsoleMessages((prev) => {
-        prev.push({ corrId, cmd: input });
-        return prev;
-      });
+      // TODO: handle error here
+      await client.current?.sendChatCommandStr(input);
     }
   };
 
