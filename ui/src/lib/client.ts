@@ -114,6 +114,10 @@ export class ChatClient {
     });
   }
 
+  public getCommandByCorrId(corrId: string) {
+    return this.sentCommands.get(corrId);
+  }
+
   public on(
     messageType: ChatClientEvents,
     cb: (data: ServerResponse) => Promise<void> | void,

@@ -5,16 +5,22 @@ import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
 import MessageInput from "@/components/MessageInput/MessageInput";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
+import clsx from "clsx";
 
 type MessageBubbleProps = {
-  heading: string;
+  heading?: string;
   children: React.ReactNode;
+  className?: string;
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  className,
+  heading,
+  children,
+}) => {
   return (
-    <div className={classes.chatItem}>
-      <span>{heading}</span>
+    <div className={clsx(classes.chatItem, className)}>
+      {heading && <span className={classes.chatItemHeading}>{heading}</span>}
       <div className="w-full">
         <span className="break-all">{children}</span>
       </div>
