@@ -234,6 +234,10 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "connect", connReq });
   }
 
+  async apiDeleteContact(contactId: number) {
+    return await this.sendChatCommand({ type: "apiDeleteContact", contactId });
+  }
+
   public async disconnect() {
     console.log(`🟥 Disconnecting ...`);
     await this.ws.disconnect().catch((e) => console.error(e));

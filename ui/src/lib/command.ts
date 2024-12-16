@@ -54,6 +54,7 @@ export type ChatCommand =
   | APIGetGroupMemberCode
   | APIVerifyContact
   | APIVerifyGroupMember
+  | APIDeleteContact
   | AddContact
   | Connect
   | ConnectSimplex
@@ -132,6 +133,7 @@ type ChatCommandTag =
   | "apiClearChat"
   | "apiAcceptContact"
   | "apiRejectContact"
+  | "apiDeleteContact"
   | "apiUpdateProfile"
   | "apiSetContactAlias"
   | "apiParseMarkdown"
@@ -353,6 +355,11 @@ export interface APIAcceptContact extends IChatCommand {
 export interface APIRejectContact extends IChatCommand {
   type: "apiRejectContact";
   contactReqId: number;
+}
+
+export interface APIDeleteContact extends IChatCommand {
+  type: "apiDeleteContact";
+  contactId: number;
 }
 
 export interface APIUpdateProfile extends IChatCommand {
@@ -729,6 +736,7 @@ export const commands: Record<ChatCommand["type"], string> = {
   apiGetGroupMemberCode: "/_get code",
   apiVerifyContact: "/_verify code",
   apiVerifyGroupMember: "/_verify code",
+  apiDeleteContact: "/_delete",
   addContact: "/connect",
   connect: "/connect",
   connectSimplex: "/simplex",
@@ -864,6 +872,9 @@ export function cmdString(cmd: ChatCommand): string {
       return `${baseCommand} #${cmd.groupId} ${cmd.groupMemberId}${maybe(cmd.connectionCode)}`;
     case "addContact":
       return baseCommand;
+    case "apiDeleteContact":
+      console.log("AALALALALALA", `${baseCommand} @${cmd.contactId}`);
+      return `${baseCommand} @${cmd.contactId}`;
     case "connect":
       return `${baseCommand} ${cmd.connReq}`;
     case "connectSimplex":
