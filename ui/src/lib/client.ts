@@ -122,7 +122,18 @@ export class ChatClient {
     this.callbacks.set(messageType, [...(current ?? []), cb]);
   }
 
-  // TODO: remove event listener
+  public off(
+    messageType: ChatClientEvents,
+    cb: (data: ServerResponse) => Promise<void> | void,
+  ) {
+    const current = this.callbacks.get(messageType);
+    if (current) {
+      this.callbacks.set(
+        messageType,
+        current.filter((callback) => callback !== cb),
+      );
+    }
+  }
 
   public async sendChatCommand(command: ChatCommand): Promise<string> {
     return this.sendChatCommandStr(cmdString(command));
