@@ -17,7 +17,7 @@
 }
 
 .chatItem {
-  @apply p-2 rounded bg-theme-surface0 flex flex-col gap-1 w-full max-h-44 overflow-hidden text-ellipsis line-clamp-3;
+  @apply p-2 rounded bg-theme-surface0 flex flex-col gap-1 w-full;
 }
 
 .chatItemHeading {
