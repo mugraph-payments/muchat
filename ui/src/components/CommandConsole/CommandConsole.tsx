@@ -21,12 +21,15 @@ const CommandConsole = () => {
       }
     };
 
-    client.current?.on("message", (msg) => {
+    const currentClient = client.current;
+    const updateMessages = (msg: ServerResponse) => {
       setConsoleMessages((prev) => [...prev, msg]);
-    });
+    };
+    currentClient?.on("message", updateMessages);
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
+      currentClient?.off("message", updateMessages);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [client, isConnected]);
