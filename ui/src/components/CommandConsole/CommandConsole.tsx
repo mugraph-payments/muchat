@@ -3,6 +3,7 @@ import { ServerResponse } from "@/lib/response";
 import { ChatCommandMessage } from "@/lib/command";
 import useChatContext from "@/useChatContext";
 import MessageInput from "@/components/MessageInput/MessageInput";
+import { MessageBubble } from "@/Chat";
 
 const CommandConsole = () => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
@@ -52,19 +53,24 @@ const CommandConsole = () => {
   const Messages = useMemo(
     () => (
       <>
-        {consoleMessages.map((cmd, index) => (
-          <div
-            key={`${index}-${cmd.corrId}`}
-            className="text-sm w-full break-all"
-          >
-            {typeof (cmd as ChatCommandMessage).cmd === "string"
-              ? `> ${(cmd as ChatCommandMessage).cmd}`
-              : JSON.stringify(cmd)}
-          </div>
-        ))}
+        {consoleMessages.map((cmd, index) => {
+          const sentCommand = client.current?.getCommandByCorrId(
+            cmd.corrId ?? "",
+          );
+          return (
+            <MessageBubble
+              heading={`> ${sentCommand?.cmd || ""}`}
+              key={`${index}-${cmd.corrId}`}
+            >
+              {typeof (cmd as ChatCommandMessage).cmd === "string"
+                ? `> ${(cmd as ChatCommandMessage).cmd}`
+                : JSON.stringify(cmd)}
+            </MessageBubble>
+          );
+        })}
       </>
     ),
-    [consoleMessages],
+    [client, consoleMessages],
   );
 
   return (
