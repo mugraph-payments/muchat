@@ -4,7 +4,7 @@ import { ChatType } from "@/lib/command";
 import MessageInput from "@/components/MessageInput/MessageInput";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
 import clsx from "clsx";
-import { Avatar, AvatarFallback } from "./components/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
 import classes from "./chat.module.css";
 import { useMemo } from "react";
 
