@@ -9,6 +9,7 @@ const CommandConsole = () => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
   const { client, isConnected } = useChatContext();
   const [isActive, setIsActive] = useState(false);
+  const [limitMessageLength, setLimitMessageLength] = useState(true);
 
   const [consoleMessages, setConsoleMessages] = useState<
     (ServerResponse | ChatCommandMessage)[]
@@ -61,6 +62,7 @@ const CommandConsole = () => {
             <MessageBubble
               heading={`> ${sentCommand?.cmd || ""}`}
               key={`${index}-${cmd.corrId}`}
+              limitMessageLenght={limitMessageLength}
             >
               {typeof (cmd as ChatCommandMessage).cmd === "string"
                 ? `> ${(cmd as ChatCommandMessage).cmd}`
@@ -70,7 +72,7 @@ const CommandConsole = () => {
         })}
       </>
     ),
-    [client, consoleMessages],
+    [limitMessageLength, client, consoleMessages],
   );
 
   return (
@@ -79,7 +81,21 @@ const CommandConsole = () => {
         isActive ? "opacity-100 visible" : "opacity-0 invisible"
       } transition-opacity duration-150 shadow-md`}
     >
-      <h3>Console</h3>
+      <div className="flex gap-4 justify-between">
+        <h3>Console</h3>
+        <div className="flex gap-2">
+          <span className="border-r pr-2">Count: {consoleMessages.length}</span>
+          <span>
+            <label htmlFor="limitMessageLength">Limit message length</label>
+            <input
+              id="limitMessageLength"
+              type="checkbox"
+              defaultChecked
+              onChange={(e) => setLimitMessageLength(e.target.checked)}
+            ></input>
+          </span>
+        </div>
+      </div>
       <div
         ref={consoleBoxRef}
         className="min-h-52 max-h-64 overflow-y-auto overflow-x-hidden bg-gray-800 p-2 rounded"

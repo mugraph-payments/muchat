@@ -13,15 +13,17 @@ type MessageBubbleProps = {
   heading?: string;
   children: React.ReactNode;
   className?: string;
+  limitMessageLenght?: boolean;
 };
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   className,
   heading,
   children,
+  limitMessageLenght = true,
 }) => {
   return (
-    <div className={clsx(classes.chatItem, className)}>
+    <div className={clsx(classes.chatItem, limitMessageLenght ? "max-h-44 overflow-hidden text-ellipsis line-clamp-3" : null, className)}>
       {heading && <span className={classes.chatItemHeading}>{heading}</span>}
       <div className="w-full">
         <span className="break-all">{children}</span>
