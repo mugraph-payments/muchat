@@ -28,10 +28,7 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
-          config = {
-            allowUnfree = true;
-            permittedInsecurePackages = [ "openssl-1.1.1w" ];
-          };
+          config.allowUnfree = true;
         };
 
         inherit (pkgs) mkShell rust-bin writeShellApplication;

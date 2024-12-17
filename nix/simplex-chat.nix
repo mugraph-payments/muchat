@@ -1,14 +1,19 @@
 {
-  stdenv,
   fetchurl,
-  gmp,
-  openssl,
-  openssl_1_1,
   makeWrapper,
+  openssl,
+  stdenv,
   steam-run,
+  lib,
 }:
 let
-  inherit (stdenv) system isLinux mkDerivation;
+  inherit (lib) optionals;
+  inherit (stdenv)
+    isDarwin
+    isLinux
+    mkDerivation
+    system
+    ;
   urlBase = version: "https://github.com/simplex-chat/simplex-chat/releases/download/v${version}";
 
   target =
@@ -37,11 +42,7 @@ mkDerivation {
 
   name = "simplex-chat";
 
-  buildInputs = [
-    openssl
-    openssl_1_1
-    gmp
-  ];
+  buildInputs = optionals isLinux [ steam-run ] ++ optionals isDarwin [ openssl ];
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -61,7 +62,7 @@ mkDerivation {
       else
         ''
           makeWrapper $out/bin/.simplex-chat-unwrapped $out/bin/simplex-chat \
-            --prefix DYLD_LIBRARY_PATH : ${openssl}/lib
+            --prefix DYLD_LIBRARY_PATH : ${openssl.out}/lib
         ''
     }
   '';
