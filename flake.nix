@@ -28,9 +28,10 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
-          config.permittedInsecurePackages = [
-            "openssl-1.1.1w"
-          ];
+          config = {
+            allowUnfree = true;
+            permittedInsecurePackages = [ "openssl-1.1.1w" ];
+          };
         };
 
         inherit (pkgs) mkShell rust-bin writeShellApplication;
@@ -49,7 +50,7 @@
           '';
         };
 
-        pre-commit-check = pre-commit-hooks.lib.${system}.run {
+        checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
 
           hooks = {
@@ -62,20 +63,20 @@
             };
           };
         };
+
+        packages.simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
       in
       {
-        checks = {
-          inherit pre-commit-check;
-        };
+        inherit checks packages;
 
         devShells.default = mkShell {
-          inherit (pre-commit-check) shellHook;
+          inherit (checks.pre-commit-check) shellHook;
 
           name = "muchat";
 
           buildInputs = with pkgs; [
             (attrValues scripts)
-            (callPackage ./nix/simplex-chat.nix { })
+            (attrValues packages)
 
             rust
             cargo-tauri
