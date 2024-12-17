@@ -803,7 +803,7 @@ export function cmdString(cmd: ChatCommand): string {
     case "apiGetChats":
       return `${baseCommand} ${cmd.userId}`; /*pcc=${onOff(cmd.pendingConnections)}*/
     case "apiGetChat":
-      return `${baseCommand} chat ${cmd.chatType}${cmd.chatId}${paginationStr(cmd.pagination)}`;
+      return `${baseCommand} ${cmd.chatType}${cmd.chatId}${paginationStr(cmd.pagination)}`;
     case "apiSendMessage":
       return `${baseCommand} ${cmd.chatType}${cmd.chatId} json ${JSON.stringify(cmd.messages)}`;
     case "apiUpdateChatItem":
@@ -873,7 +873,6 @@ export function cmdString(cmd: ChatCommand): string {
     case "addContact":
       return baseCommand;
     case "apiDeleteContact":
-      console.log("AALALALALALA", `${baseCommand} @${cmd.contactId}`);
       return `${baseCommand} @${cmd.contactId}`;
     case "connect":
       return `${baseCommand} ${cmd.connReq}`;

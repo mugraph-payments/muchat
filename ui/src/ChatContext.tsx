@@ -1,15 +1,16 @@
 import { createContext, useState, ReactNode, useCallback } from "react";
 import {
   AChatItem,
-  ChatInfoType,
   ChatItem,
   Contact,
   UserContactLink,
   ServerResponse,
   User,
   UserInfo,
+  ChatInfoType,
 } from "@/lib/response";
 import { useSimplexCli } from "./useSimplexCli";
+import { ChatType } from "./lib/command";
 
 export interface ChatContextType {
   client: ReturnType<typeof useSimplexCli>;
@@ -99,13 +100,31 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
       client.current?.apiListContacts(data.user.userId.toString());
       setActiveUser(data.user);
     },
+    onChat: (data) => {
+      switch (data.chat.chatInfo.type) {
+        case ChatInfoType.Direct: {
+          const newChatItems = data.chat.chatItems;
+          const contactId = data.chat.chatInfo.contact.contactId;
+          setDirectChats((chats) => {
+            chats.set(contactId, newChatItems);
+            return chats;
+          });
+          break;
+        }
+      }
+    },
     onNewChatItems: (data) => updateDirectChats(data.chatItems),
     onUserList: (data) => setUsers(data.users),
     onUserContactLink: (data) => setContactLink(data.contactLink),
-    onContactsList: (data) =>
+    onContactsList: (data) => {
+      // Fetch chat for each contact
+      data.contacts.forEach((contact) => {
+        client.current?.apiGetChat(ChatType.Direct, contact.contactId);
+      });
       setContacts(
         new Map(data.contacts.map((contact) => [contact.contactId, contact])),
-      ),
+      );
+    },
   });
 
   return (

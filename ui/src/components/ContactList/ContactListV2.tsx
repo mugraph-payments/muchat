@@ -71,9 +71,7 @@ function ContactListv2() {
                   ? "bg-theme-text text-background"
                   : "bg-muted text-muted-foreground"
               }`}
-              onClick={(e) => {
-                console.log("button click");
-                console.log(e.button);
+              onClick={() => {
                 setSelectedChatId(cId);
               }}
             >

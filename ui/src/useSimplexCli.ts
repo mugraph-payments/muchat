@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
   CRActiveUser,
+  CRApiChat,
+  CRApiChats,
   CRContactsList,
   CRNewChatItems,
   CRUserContactLink,
@@ -24,6 +26,8 @@ type useSimplexProps = {
   onConnected?: (isConnected: boolean) => void;
   onUserContactLink?: (data: CRUserContactLink) => void;
   onContactsList?: (data: CRContactsList) => void;
+  onChats?: (data: CRApiChats) => void;
+  onChat?: (data: CRApiChat) => void;
 };
 
 export function useSimplexCli({ ...callbacks }: useSimplexProps) {
@@ -56,6 +60,14 @@ export function useSimplexCli({ ...callbacks }: useSimplexProps) {
           callbacks.onContactsList?.(data.resp);
           break;
         }
+        case "apiChats": {
+          callbacks.onChats?.(data.resp);
+          break;
+        }
+        case "apiChat": {
+          callbacks.onChat?.(data.resp);
+          break;
+        }
         default: {
           break;
         }
@@ -73,9 +85,8 @@ export function useSimplexCli({ ...callbacks }: useSimplexProps) {
     await Promise.all([
       client.apiCreateAddress(),
       client.apiListUsers(),
-      client.apiGetActiveUser(),
-      client.apiGetActiveUser(),
       client.apiSetAutoAccept(),
+      client.apiGetActiveUser(),
     ]);
   }, [serverResponseReducer]);
 

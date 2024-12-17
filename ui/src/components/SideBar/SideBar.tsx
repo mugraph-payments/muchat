@@ -19,7 +19,6 @@ function SideBar() {
           activeUser={activeUser}
           users={users}
           onSelect={(userId) => {
-            console.log(`selecting ${userId}`);
             client.current?.apiSetActiveUser(userId);
           }}
         />
