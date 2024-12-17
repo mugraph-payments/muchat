@@ -75,6 +75,7 @@
 
           buildInputs = with pkgs; [
             (attrValues scripts)
+            (callPackage ./nix/simplex-chat.nix { })
 
             rust
             cargo-tauri
