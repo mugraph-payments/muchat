@@ -1,19 +1,49 @@
 {
   stdenv,
+  fetchurl,
+  gmp,
+  openssl_1_1,
+  makeWrapper,
+  steam-run,
 }:
 let
   inherit (stdenv) system mkDerivation;
-  urlBase = version: "https://github.com/simplex-chat/simplex-chat/releases/download/v6.2.1";
+  urlBase = version: "https://github.com/simplex-chat/simplex-chat/releases/download/v${version}";
 
-  releasePath = concatStringsSep (
+  filename =
     {
       x86_64-linux = "simplex-chat-ubuntu-22_04-x86-64";
     }
-    ."${system}"
-  );
+    .${system};
+
+  version = "6.2.1";
+
+  src = fetchurl {
+    url = "${urlBase version}/${filename}";
+    sha256 = "sha256-0pBndadLyb53iVh+PhKZEfQT+WSnpp34UCMlTJ/Nx/U=";
+  };
 in
-mkDerivation rec {
+mkDerivation {
+  inherit version src;
+
   name = "simplex-chat";
-  src = releasePath;
-  doBuild = false;
+
+  buildInputs = [
+    gmp
+    openssl_1_1
+  ];
+
+  nativeBuildInputs = [
+    makeWrapper
+  ];
+
+  dontUnpack = true;
+  dontBuild = true;
+
+  installPhase = ''
+    mkdir -p $out/bin
+    install -m 0755 ${src} $out/bin/.simplex-chat-unwrapped
+    makeWrapper ${steam-run}/bin/steam-run $out/bin/simplex-chat \
+      --add-flags "$out/bin/.simplex-chat-unwrapped"
+  '';
 }
