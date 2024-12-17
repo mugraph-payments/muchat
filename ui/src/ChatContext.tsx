@@ -99,6 +99,7 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
       client.current?.apiListContacts(data.user.userId.toString());
       setActiveUser(data.user);
+      setSelectedChatId(-1);
     },
     onChat: (data) => {
       switch (data.chat.chatInfo.type) {

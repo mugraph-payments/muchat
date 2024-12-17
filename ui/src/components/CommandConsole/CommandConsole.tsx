@@ -57,6 +57,7 @@ const CommandConsole = () => {
           );
           return (
             <MessageBubble
+              className="w-full"
               heading={`> ${sentCommand?.cmd || ""}`}
               key={`${index}-${cmd.corrId}`}
               limitMessageLenght={limitMessageLength}
