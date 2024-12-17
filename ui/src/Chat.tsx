@@ -1,10 +1,8 @@
 import { useMemo } from "react";
 import classes from "@/chat.module.css";
-import ContactList from "@/components/ContactList/ContactList";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
-// import CommandConsole from "@/components/CommandConsole/CommandConsole";
 import MessageInput from "@/components/MessageInput/MessageInput";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
 
@@ -58,7 +56,8 @@ const Chat = () => {
 
   const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
     return messages.map((msg, index) => {
-      return (
+      return msg.content.type === "sndMsgContent" ||
+        msg.content.type === "rcvMsgContent" ? (
         <div key={index}>
           {msg.content.type === "rcvMsgContent" && (
             <MessageBubble
@@ -77,7 +76,7 @@ const Chat = () => {
             </MessageBubble>
           )}
         </div>
-      );
+      ) : null;
     });
   };
 
@@ -105,7 +104,7 @@ const Chat = () => {
 
       <div className="h-screen w-64 text-white"></div>
       <div>
-        <CommandConsole />
+        <CommandConsole client={client} />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
@@ -113,16 +112,15 @@ const Chat = () => {
         >
           {isConnected ? "Connected" : "Disconnected"}
         </div>
-
-        <ContactList />
       </div>
-
-      <div id="messages" className={classes.chatBody}>
-        {selectedChatId === -1
-          ? null
-          : DirectChat(selectedChat, selectedContact ?? null)}
+      <div className="flex flex-col h-full p-4 gap-2 overflow-hidden">
+        <div id="messages" className={classes.chatBody}>
+          {selectedChatId === -1
+            ? null
+            : DirectChat(selectedChat, selectedContact ?? null)}
+        </div>
+        <MessageInput onSubmit={handleSendMessage} />
       </div>
-      <MessageInput onSubmit={handleSendMessage} />
     </div>
   );
 };
