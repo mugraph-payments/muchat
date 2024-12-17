@@ -8,6 +8,7 @@ import { ChatType } from "./lib/command";
 import CommandPanel from "./components/CommandPanel/CommandPanel";
 import Button from "./components/Button/Button";
 import { Avatar, AvatarFallback } from "./components/Avatar";
+import { toast } from "sonner";
 
 type MessageBubbleProps = {
   heading: string;
@@ -58,6 +59,7 @@ const Chat = () => {
         },
       ]);
       setMessage("");
+      toast("message sent successfully!");
     }
   };
 
