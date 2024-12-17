@@ -19,7 +19,11 @@
 }
 
 .chatItem {
-  @apply p-2 rounded bg-theme-surface0 flex flex-col gap-1 w-full;
+  @apply p-2 px-4 rounded bg-theme-surface0 flex flex-col gap-1 w-fit;
+}
+
+.chatItemRight {
+  @apply ml-auto;
 }
 
 .chatItemHeading {

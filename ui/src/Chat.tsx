@@ -12,6 +12,7 @@ type MessageBubbleProps = {
   children: React.ReactNode;
   className?: string;
   limitMessageLenght?: boolean;
+  side?: "left" | "right";
 };
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -19,18 +20,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   heading,
   children,
   limitMessageLenght = true,
+  side = "left",
 }) => {
   return (
     <div
       className={clsx(
         classes.chatItem,
+        `${side === "right" && classes.chatItemRight}`,
         limitMessageLenght
-          ? "max-h-44 overflow-hidden text-ellipsis line-clamp-3"
+          ? `max-h-44 overflow-hidden line-clamp-3 text-ellipsis`
           : null,
         className,
       )}
     >
-      {heading && <span className={classes.chatItemHeading}>{heading}</span>}
+      {heading && (
+        <span className={`${classes.chatItemHeading}`}>{heading}</span>
+      )}
       <div className="w-full">
         <span className="break-all">{children}</span>
       </div>
@@ -87,6 +92,7 @@ const Chat = () => {
             <MessageBubble
               heading={activeUser?.localDisplayName ?? "No Display Name"}
               key={index}
+              side={"right"}
             >
               {msg.content.msgContent.text}
             </MessageBubble>
