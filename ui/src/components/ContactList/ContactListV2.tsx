@@ -75,13 +75,13 @@ function ContactListv2() {
                 setSelectedChatId(cId);
               }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full">
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarFallback>
                     {contact.localDisplayName.at(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col items-start overflow-hidden">
                   <span className="font-medium truncate">
                     {contact.localDisplayName}
                   </span>
