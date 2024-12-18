@@ -7,6 +7,7 @@ import MessageInput from "@/components/MessageInput/MessageInput";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
 import clsx from "clsx";
+import { toast } from "sonner";
 
 type MessageBubbleProps = {
   heading?: string;
@@ -71,6 +72,7 @@ const Chat = () => {
           },
         },
       ]);
+      toast("Your message has been successfully sent");
     }
   };
 
