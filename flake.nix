@@ -79,6 +79,7 @@
 
             rust
 
+            cargo-edit
             cargo-tauri
             cargo-watch
             nodePackages.pnpm
