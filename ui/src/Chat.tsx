@@ -1,12 +1,11 @@
+import { useMemo } from "react";
+import classes from "@/chat.module.css";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
 import MessageInput from "@/components/MessageInput/MessageInput";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
-import clsx from "clsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
-import classes from "./chat.module.css";
-import { useMemo } from "react";
 import clsx from "clsx";
 
 type MessageBubbleProps = {
@@ -15,8 +14,6 @@ type MessageBubbleProps = {
   className?: string;
   limitMessageLenght?: boolean;
   side?: "left" | "right";
-  className?: string;
-  limitMessageLenght?: boolean;
 };
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -40,19 +37,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       {heading && (
         <span className={`${classes.chatItemHeading}`}>{heading}</span>
       )}
-    <div
-      className={clsx(
-        classes.chatItem,
-        limitMessageLenght
-          ? "max-h-44 overflow-hidden text-ellipsis line-clamp-3"
-          : null,
-        className,
-      )}
-    >
-      {heading && <span className={classes.chatItemHeading}>{heading}</span>}
-      <div className="w-full">
-        <span className="break-all">{children}</span>
-      </div>
+      {children}
     </div>
   );
 };
@@ -106,7 +91,6 @@ const Chat = () => {
             <MessageBubble
               heading={activeUser?.localDisplayName ?? "No Display Name"}
               key={index}
-              side={"right"}
             >
               {msg.content.msgContent.text}
             </MessageBubble>
@@ -118,7 +102,6 @@ const Chat = () => {
 
   const contactName = selectedContact?.localDisplayName;
   const contactAvatar = selectedContact?.profile.image;
-  const contactName = contacts.get(selectedChatId)?.localDisplayName;
 
   return (
     <div className={classes.container}>
@@ -136,11 +119,8 @@ const Chat = () => {
           <h2>{contactName ?? "Debug"}</h2>
         </div>
       </div>
-      <div className="bg-gray-800"></div>
-
-      <div className="h-screen w-64 text-white"></div>
       <div>
-        <CommandConsole client={client} />
+        <CommandConsole />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
