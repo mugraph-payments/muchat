@@ -1,3 +1,12 @@
 [workspace]
 members = ["providers", "ui/src-tauri"]
 resolver = "2"
+
+[workspace.dependencies]
+async-stream = "0.3.6"
+chrono = { version = "0.4.39", features = ["serde"] }
+futures = "0.3.31"
+serde = { version = "1.0.216", features = ["derive"] }
+serde_json = "1.0.133"
+tokio = { version = "1.42.0", features = ["full"] }
+tokio-tungstenite = "0.26.0"
