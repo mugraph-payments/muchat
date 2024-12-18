@@ -8,6 +8,7 @@ import CommandConsole from "./components/CommandConsole/CommandConsole";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
 import clsx from "clsx";
 import { toast } from "sonner";
+import { Badge } from "./components/Badge";
 
 type MessageBubbleProps = {
   heading?: string;
@@ -107,29 +108,27 @@ const Chat = () => {
 
   return (
     <div className={classes.container}>
-      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarImage
-              src={contactAvatar}
-              alt={selectedContact?.localDisplayName}
-            />
-            <AvatarFallback>
-              {contactName ? contactName.charAt(0).toUpperCase() : "D"}
-            </AvatarFallback>
-          </Avatar>
-          <h2>{contactName ?? "Debug"}</h2>
-        </div>
-      </div>
-      <div>
-        <CommandConsole />
-        <div
-          className={`${classes.status} ${
-            isConnected ? classes.connected : classes.disconnected
-          }`}
+      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2">
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarImage
+            src={contactAvatar}
+            alt={selectedContact?.localDisplayName}
+          />
+          <AvatarFallback>
+            {contactName ? contactName.charAt(0).toUpperCase() : "D"}
+          </AvatarFallback>
+        </Avatar>
+        <h2>{contactName ?? "Debug"}</h2>
+        <Badge
+          className="ml-auto"
+          variant={isConnected ? "default" : "destructive"}
         >
           {isConnected ? "Connected" : "Disconnected"}
-        </div>
+        </Badge>
+      </div>
+
+      <div>
+        <CommandConsole />
       </div>
       <div className="flex flex-col h-full p-4 gap-2 overflow-hidden">
         <div id="messages" className={classes.chatBody}>
