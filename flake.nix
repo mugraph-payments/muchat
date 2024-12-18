@@ -58,6 +58,8 @@
               enable = true;
               packageOverrides.cargo = rust;
             };
+
+            prettier.enable = true;
           };
         };
 
@@ -76,11 +78,23 @@
             (attrValues packages)
 
             rust
+
             cargo-tauri
             cargo-watch
-
-            nodejs
             nodePackages.pnpm
+            nodejs
+            openssl
+            pkg-config
+
+            webkitgtk
+            gtk3
+            cairo
+            gdk-pixbuf
+            glib
+            dbus
+            openssl
+            librsvg
+            webkitgtk_4_1
           ];
         };
       }
