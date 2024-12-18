@@ -1,15 +1,21 @@
-import { createContext, useState, ReactNode } from "react";
+import { createContext, useState, ReactNode, useCallback } from "react";
 import {
   AChatItem,
-  ChatInfoType,
   ChatItem,
   Contact,
   UserContactLink,
   ServerResponse,
   User,
+  UserInfo,
+  ChatInfoType,
 } from "@/lib/response";
+import { useSimplexCli } from "./useSimplexCli";
+import { ChatType } from "./lib/command";
 
-interface ChatContextType {
+export interface ChatContextType {
+  client: ReturnType<typeof useSimplexCli>;
+  users: UserInfo[];
+  setUsers: (users: UserInfo[]) => void;
   isConnected: boolean;
   setIsConnected: (c: boolean) => void;
   messages: ServerResponse[];
@@ -40,12 +46,96 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedChatId, setSelectedChatId] = useState(-1);
   const [activeUser, setActiveUser] = useState<null | User>(null);
   const [contactLink, setContactLink] = useState<UserContactLink | null>(null);
+  const [users, setUsers] = useState<UserInfo[]>([]);
+  const addMessage = useCallback(
+    (msg: ServerResponse) => setMessages((msgs) => [...msgs, msg]),
+    [],
+  );
+  const updateDirectChats = useCallback(
+    (chats: AChatItem[]) => {
+      setDirectChats((curChats) => {
+        const updatedDirectChats = new Map(curChats);
+        chats.forEach((msg) => {
+          if (msg.chatInfo.type === ChatInfoType.Direct) {
+            const contact = msg.chatInfo.contact;
+
+            if (!contacts.has(contact.contactId)) {
+              setContacts((c) => {
+                const newContacts = new Map(c);
+                newContacts.set(contact.contactId, contact);
+                return newContacts;
+              });
+            }
+
+            const currentMessages =
+              updatedDirectChats.get(contact.contactId) ?? [];
+            updatedDirectChats.set(contact.contactId, [
+              ...currentMessages,
+              msg.chatItem,
+            ]);
+          }
+        });
+        return updatedDirectChats;
+      });
+    },
+    [contacts],
+  );
+  const setContact = useCallback(
+    (c: Contact) =>
+      setContacts((curContacts) => {
+        const newContacts = new Map(curContacts);
+        newContacts.set(c.contactId, c);
+        return newContacts;
+      }),
+    [],
+  );
+  const client = useSimplexCli({
+    onData: addMessage,
+    onConnected: setIsConnected,
+    onActiveUser: (data) => {
+      if (!users.find((u) => u.user.userId === data.user.userId)) {
+        // Update users to include new user
+        client.current?.apiListUsers();
+      }
+      client.current?.apiListContacts(data.user.userId.toString());
+      setActiveUser(data.user);
+      setSelectedChatId(-1);
+    },
+    onChat: (data) => {
+      switch (data.chat.chatInfo.type) {
+        case ChatInfoType.Direct: {
+          const newChatItems = data.chat.chatItems;
+          const contactId = data.chat.chatInfo.contact.contactId;
+          setDirectChats((chats) => {
+            chats.set(contactId, newChatItems);
+            return chats;
+          });
+          break;
+        }
+      }
+    },
+    onNewChatItems: (data) => updateDirectChats(data.chatItems),
+    onUserList: (data) => setUsers(data.users),
+    onUserContactLink: (data) => setContactLink(data.contactLink),
+    onContactsList: (data) => {
+      // Fetch chat for each contact
+      data.contacts.forEach((contact) => {
+        client.current?.apiGetChat(ChatType.Direct, contact.contactId);
+      });
+      setContacts(
+        new Map(data.contacts.map((contact) => [contact.contactId, contact])),
+      );
+    },
+  });
 
   return (
     <ChatContext.Provider
       value={{
+        client,
         isConnected,
         activeUser,
+        users,
+        setUsers,
         setActiveUser,
         contactLink,
         setContactLink,
@@ -54,41 +144,12 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
         setSelectedChatId,
         messages,
         setMessages,
-        addMessage: (msg) => setMessages((msgs) => [...msgs, msg]),
+        addMessage,
         contacts,
-        setContact: (c) =>
-          setContacts((curContacts) => {
-            const newContacts = new Map(curContacts);
-            newContacts.set(c.contactId, c);
-            return newContacts;
-          }),
+        setContact,
         setContacts,
         directChats,
-        setDirectChats: (chats) =>
-          setDirectChats((curChats) => {
-            const updatedDirectChats = new Map(curChats);
-            chats.forEach((msg) => {
-              if (msg.chatInfo.type === ChatInfoType.Direct) {
-                const contact = msg.chatInfo.contact;
-
-                if (!contacts.has(contact.contactId)) {
-                  setContacts((c) => {
-                    const newContacts = new Map(c);
-                    newContacts.set(contact.contactId, contact);
-                    return newContacts;
-                  });
-                }
-
-                const currentMessages =
-                  updatedDirectChats.get(contact.contactId) ?? [];
-                updatedDirectChats.set(contact.contactId, [
-                  ...currentMessages,
-                  msg.chatItem,
-                ]);
-              }
-            });
-            return updatedDirectChats;
-          }),
+        setDirectChats: updateDirectChats,
       }}
     >
       {children}

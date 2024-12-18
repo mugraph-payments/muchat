@@ -1,23 +1,55 @@
-import { useMemo, useState } from "react";
-import classes from "./chat.module.css";
-import ContactList from "./components/ContactList/ContactList";
-import useChatContext from "./useChatContext";
-import { useWebSocket } from "./useWebSocket";
-import { ChatItem, Contact, ServerResponse } from "./lib/response";
-import { ChatType } from "./lib/command";
-import CommandPanel from "./components/CommandPanel/CommandPanel";
-import Button from "./components/Button/Button";
+import useChatContext from "@/useChatContext";
+import { ChatItem, Contact } from "@/lib/response";
+import { ChatType } from "@/lib/command";
+import MessageInput from "@/components/MessageInput/MessageInput";
+import CommandConsole from "./components/CommandConsole/CommandConsole";
+import clsx from "clsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
+import classes from "./chat.module.css";
+import { useMemo } from "react";
+import clsx from "clsx";
 
 type MessageBubbleProps = {
-  heading: string;
+  heading?: string;
   children: React.ReactNode;
+  className?: string;
+  limitMessageLenght?: boolean;
+  side?: "left" | "right";
+  className?: string;
+  limitMessageLenght?: boolean;
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  className,
+  heading,
+  children,
+  limitMessageLenght = true,
+  side = "left",
+}) => {
   return (
-    <div className={classes.chatItem}>
-      <span>{heading}</span>
+    <div
+      className={clsx(
+        classes.chatItem,
+        `${side === "right" && classes.chatItemRight}`,
+        limitMessageLenght
+          ? `max-h-44 overflow-hidden line-clamp-3 text-ellipsis`
+          : null,
+        className,
+      )}
+    >
+      {heading && (
+        <span className={`${classes.chatItemHeading}`}>{heading}</span>
+      )}
+    <div
+      className={clsx(
+        classes.chatItem,
+        limitMessageLenght
+          ? "max-h-44 overflow-hidden text-ellipsis line-clamp-3"
+          : null,
+        className,
+      )}
+    >
+      {heading && <span className={classes.chatItemHeading}>{heading}</span>}
       <div className="w-full">
         <span className="break-all">{children}</span>
       </div>
@@ -26,11 +58,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ heading, children }) => {
 };
 
 const Chat = () => {
-  const client = useWebSocket();
   const {
+    client,
     activeUser,
     contacts,
-    messages: allMessages,
     isConnected,
     directChats,
     selectedChatId,
@@ -45,11 +76,9 @@ const Chat = () => {
     [selectedChatId, contacts],
   );
 
-  const [message, setMessage] = useState("");
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async (message: string) => {
     if (message.trim() !== "") {
-      client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
+      await client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
         {
           msgContent: {
             type: "text",
@@ -57,31 +86,13 @@ const Chat = () => {
           },
         },
       ]);
-      setMessage("");
     }
-  };
-
-  const handleKeyPress: React.KeyboardEventHandler<HTMLInputElement> = (
-    event,
-  ) => {
-    if (event.key === "Enter") {
-      handleSendMessage();
-    }
-  };
-
-  const DebugChat = (messages: ServerResponse[]) => {
-    return messages.map((msg, index) => {
-      return (
-        <MessageBubble key={index} heading={msg.resp.type}>
-          {JSON.stringify(msg)}
-        </MessageBubble>
-      );
-    });
   };
 
   const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
     return messages.map((msg, index) => {
-      return (
+      return msg.content.type === "sndMsgContent" ||
+        msg.content.type === "rcvMsgContent" ? (
         <div key={index}>
           {msg.content.type === "rcvMsgContent" && (
             <MessageBubble
@@ -95,17 +106,19 @@ const Chat = () => {
             <MessageBubble
               heading={activeUser?.localDisplayName ?? "No Display Name"}
               key={index}
+              side={"right"}
             >
               {msg.content.msgContent.text}
             </MessageBubble>
           )}
         </div>
-      );
+      ) : null;
     });
   };
 
   const contactName = selectedContact?.localDisplayName;
   const contactAvatar = selectedContact?.profile.image;
+  const contactName = contacts.get(selectedChatId)?.localDisplayName;
 
   return (
     <div className={classes.container}>
@@ -127,7 +140,7 @@ const Chat = () => {
 
       <div className="h-screen w-64 text-white"></div>
       <div>
-        <CommandPanel client={client} />
+        <CommandConsole client={client} />
         <div
           className={`${classes.status} ${
             isConnected ? classes.connected : classes.disconnected
@@ -135,27 +148,14 @@ const Chat = () => {
         >
           {isConnected ? "Connected" : "Disconnected"}
         </div>
-
-        <ContactList client={client} />
       </div>
-
-      <div id="messages" className={classes.chatBody}>
-        {selectedChatId === -1
-          ? DebugChat(allMessages)
-          : DirectChat(selectedChat, selectedContact ?? null)}
-      </div>
-      <div className={classes.messageBox}>
-        <input
-          type="text"
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyPress}
-          className={classes.messageInput}
-        />
-        <Button onClick={handleSendMessage} className={classes.sendButton}>
-          Send
-        </Button>
+      <div className="flex flex-col h-full p-4 gap-2 overflow-hidden">
+        <div id="messages" className={classes.chatBody}>
+          {selectedChatId === -1
+            ? null
+            : DirectChat(selectedChat, selectedContact ?? null)}
+        </div>
+        <MessageInput onSubmit={handleSendMessage} />
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import {
   LocalProfile,
   ServerProtocol,
   ServerCfg,
-} from "./command";
+} from "@/lib/command";
 
 export type ServerResponse = {
   corrId: string;
@@ -833,7 +833,7 @@ export interface UserPwdHash {
   salt: string;
 }
 
-interface UserInfo {
+export interface UserInfo {
   user: User;
   unreadCount: number;
 }
