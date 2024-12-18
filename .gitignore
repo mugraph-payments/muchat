@@ -1,1 +1,5 @@
 .pre-commit-config.yaml
+result
+target/*
+**/node_modules/*
+**/dist/*

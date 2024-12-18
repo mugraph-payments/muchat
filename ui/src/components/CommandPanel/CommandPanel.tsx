@@ -1,9 +1,9 @@
 import useChatContext from "@/useChatContext";
-import { useWebSocket } from "@/useWebSocket";
+import { useSimplexCli } from "@/useSimplexCli";
 import Button from "@/components/Button/Button";
 
 type CommandPanelProps = {
-  client: ReturnType<typeof useWebSocket>;
+  client: ReturnType<typeof useSimplexCli>;
 };
 
 const CommandPanel = ({ client }: CommandPanelProps) => {

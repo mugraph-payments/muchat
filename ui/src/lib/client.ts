@@ -1,5 +1,5 @@
 import WebSocket, { Message } from "@tauri-apps/plugin-websocket";
-import { HOST, PORT } from "../config";
+import { HOST, PORT } from "@/config";
 import {
   ChatCommand,
   ChatCommandMessage,
@@ -7,18 +7,14 @@ import {
   ChatType,
   cmdString,
   ComposedMessage,
-} from "./command";
-import { ChatResponse, ChatResponseTag, ServerResponse } from "./response";
+  Profile,
+} from "@/lib/command";
+import { ChatResponse, ChatResponseTag, ServerResponse } from "@/lib/response";
 
-export interface ChatServer {
+export interface SimplexServerDetails {
   readonly host: string;
   readonly port?: string;
 }
-
-export const localServer: ChatServer = {
-  host: HOST,
-  port: PORT,
-};
 
 export type ChatClientEvents = "message" | ChatResponseTag;
 export type ChatClientMessageBundle = ChatCommandMessage & {
@@ -32,32 +28,38 @@ export enum ConnReqType {
 
 export class ChatClient {
   private corrId = 0;
-  private static instance: ChatClient;
+  private static instance: ChatClient | null = null;
   private ws: WebSocket;
   private callbacks: Map<string, ((data: ServerResponse) => void)[]> =
     new Map();
   private sentCommands: Map<string, ChatClientMessageBundle> = new Map();
   public isConnected = false;
+  static localServer: SimplexServerDetails = {
+    host: HOST,
+    port: PORT,
+  };
 
   private constructor(ws: WebSocket) {
     this.ws = ws;
   }
 
   static async create(
-    serverDetails: ChatServer | string = localServer,
+    serverDetails: SimplexServerDetails | string = ChatClient.localServer,
   ): Promise<ChatClient> {
+    // TODO: detect change in server endpoint and disconnect if needed
     if (ChatClient.instance) return ChatClient.instance;
-    const ws = await WebSocket.connect(
+    const simplexEndpoint =
       typeof serverDetails === "string"
         ? serverDetails
-        : `${serverDetails.host}:${serverDetails.port}`,
-    );
+        : `${serverDetails.host}:${serverDetails.port}`;
+
+    console.log(`🟦 Connecting to ${simplexEndpoint}`);
+    const ws = await WebSocket.connect(simplexEndpoint);
     const chatClient = new ChatClient(ws);
     chatClient.setIsConnected = true;
     ChatClient.instance = chatClient;
 
     ws.addListener(chatClient.handleServerMessages.bind(chatClient));
-
     return ChatClient.instance;
   }
 
@@ -82,7 +84,7 @@ export class ChatClient {
         break;
       }
       case "Close":
-        this.disconnect();
+        // this.disconnect();
         break;
       default:
         return;
@@ -112,12 +114,29 @@ export class ChatClient {
     });
   }
 
+  public getCommandByCorrId(corrId: string) {
+    return this.sentCommands.get(corrId);
+  }
+
   public on(
     messageType: ChatClientEvents,
     cb: (data: ServerResponse) => Promise<void> | void,
   ) {
     const current = this.callbacks.get(messageType);
     this.callbacks.set(messageType, [...(current ?? []), cb]);
+  }
+
+  public off(
+    messageType: ChatClientEvents,
+    cb: (data: ServerResponse) => Promise<void> | void,
+  ) {
+    const current = this.callbacks.get(messageType);
+    if (current) {
+      this.callbacks.set(
+        messageType,
+        current.filter((callback) => callback !== cb),
+      );
+    }
   }
 
   public async sendChatCommand(command: ChatCommand): Promise<string> {
@@ -179,8 +198,36 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "listUsers" });
   }
 
+  async apiCreateUser(
+    profile: Profile,
+    sameServers?: boolean,
+    pastTimestamp?: boolean,
+  ) {
+    return await this.sendChatCommand({
+      type: "createActiveUser",
+      profile,
+      sameServers: sameServers || true,
+      pastTimestamp: pastTimestamp || false,
+    });
+  }
+
+  async apiDeleteUser(userId: number, delSMPQueues = true) {
+    return await this.sendChatCommand({
+      type: "apiDeleteUser",
+      userId,
+      delSMPQueues,
+    });
+  }
+
   async apiGetChats(userId: number) {
     return await this.sendChatCommand({ type: "apiGetChats", userId });
+  }
+
+  async apiSetActiveUser(userId: number) {
+    return await this.sendChatCommand({
+      type: "apiSetActiveUser",
+      userId,
+    });
   }
 
   async apiGetChat(
@@ -202,8 +249,14 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "connect", connReq });
   }
 
+  async apiDeleteContact(contactId: number) {
+    return await this.sendChatCommand({ type: "apiDeleteContact", contactId });
+  }
+
   public async disconnect() {
-    await this.ws.disconnect();
+    console.log(`🟥 Disconnecting ...`);
+    await this.ws.disconnect().catch((e) => console.error(e));
+    ChatClient.instance = null;
     this.setIsConnected = false;
   }
 
