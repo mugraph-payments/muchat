@@ -1,48 +1,144 @@
-import * as React from "react";
-import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { useMemo } from "react";
+import classes from "@/chat.module.css";
+import useChatContext from "@/useChatContext";
+import { ChatItem, Contact } from "@/lib/response";
+import { ChatType } from "@/lib/command";
+import MessageInput from "@/components/MessageInput/MessageInput";
+import CommandConsole from "./components/CommandConsole/CommandConsole";
+import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
+import clsx from "clsx";
 
-import { cn } from "@/lib/utils";
+type MessageBubbleProps = {
+  heading?: string;
+  children: React.ReactNode;
+  className?: string;
+  limitMessageLenght?: boolean;
+  side?: "left" | "right";
+};
 
-const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
-      className,
-    )}
-    {...props}
-  />
-));
-Avatar.displayName = AvatarPrimitive.Root.displayName;
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  className,
+  heading,
+  children,
+  limitMessageLenght = true,
+  side = "left",
+}) => {
+  return (
+    <div
+      className={clsx(
+        classes.chatItem,
+        `${side === "right" && classes.chatItemRight}`,
+        limitMessageLenght
+          ? `max-h-44 overflow-hidden line-clamp-3 text-ellipsis`
+          : null,
+        className,
+      )}
+    >
+      {heading && (
+        <span className={`${classes.chatItemHeading}`}>{heading}</span>
+      )}
+      {children}
+    </div>
+  );
+};
 
-const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-));
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+const Chat = () => {
+  const {
+    client,
+    activeUser,
+    contacts,
+    isConnected,
+    directChats,
+    selectedChatId,
+  } = useChatContext();
+  const selectedChat = useMemo(
+    () =>
+      selectedChatId === -1 ? [] : (directChats.get(selectedChatId) ?? []),
+    [selectedChatId, directChats],
+  );
+  const selectedContact = useMemo(
+    () => (selectedChatId === -1 ? null : contacts.get(selectedChatId)),
+    [selectedChatId, contacts],
+  );
 
-const AvatarFallback = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Fallback>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted",
-      className,
-    )}
-    {...props}
-  />
-));
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+  const handleSendMessage = async (message: string) => {
+    if (message.trim() !== "") {
+      await client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
+        {
+          msgContent: {
+            type: "text",
+            text: message,
+          },
+        },
+      ]);
+    }
+  };
 
-export { Avatar, AvatarImage, AvatarFallback };
+  const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
+    return messages.map((msg, index) => {
+      return msg.content.type === "sndMsgContent" ||
+        msg.content.type === "rcvMsgContent" ? (
+        <div key={index}>
+          {msg.content.type === "rcvMsgContent" && (
+            <MessageBubble
+              heading={contact?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
+          )}
+          {msg.content.type === "sndMsgContent" && (
+            <MessageBubble
+              heading={activeUser?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
+          )}
+        </div>
+      ) : null;
+    });
+  };
+
+  const contactName = selectedContact?.localDisplayName;
+  const contactAvatar = selectedContact?.profile.image;
+
+  return (
+    <div className={classes.container}>
+      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarImage
+              src={contactAvatar}
+              alt={selectedContact?.localDisplayName}
+            />
+            <AvatarFallback>
+              {contactName ? contactName.charAt(0).toUpperCase() : "D"}
+            </AvatarFallback>
+          </Avatar>
+          <h2>{contactName ?? "Debug"}</h2>
+        </div>
+      </div>
+      <div>
+        <CommandConsole />
+        <div
+          className={`${classes.status} ${
+            isConnected ? classes.connected : classes.disconnected
+          }`}
+        >
+          {isConnected ? "Connected" : "Disconnected"}
+        </div>
+      </div>
+      <div className="flex flex-col h-full p-4 gap-2 overflow-hidden">
+        <div id="messages" className={classes.chatBody}>
+          {selectedChatId === -1
+            ? null
+            : DirectChat(selectedChat, selectedContact ?? null)}
+        </div>
+        <MessageInput onSubmit={handleSendMessage} />
+      </div>
+    </div>
+  );
+};
+
+export default Chat;

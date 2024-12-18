@@ -1,19 +1,11 @@
 import { useMemo } from "react";
 import classes from "@/chat.module.css";
-import ContactList from "./components/ContactList/ContactList";
-import useChatContext from "./useChatContext";
-import { useWebSocket } from "./useWebSocket";
-import { ChatItem, Contact, ServerResponse } from "./lib/response";
-import { ChatType } from "./lib/command";
-import CommandPanel from "./components/CommandPanel/CommandPanel";
-import Button from "./components/Button/Button";
-import { toast } from "sonner";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
 import MessageInput from "@/components/MessageInput/MessageInput";
 import CommandConsole from "./components/CommandConsole/CommandConsole";
-import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import clsx from "clsx";
 
 type MessageBubbleProps = {
@@ -79,8 +71,6 @@ const Chat = () => {
           },
         },
       ]);
-      setMessage("");
-      toast("message sent successfully!");
     }
   };
 
