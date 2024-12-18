@@ -92,7 +92,7 @@ impl ChatClient {
                     let msg = serde_json::to_string(&command)
                         .map_err(|e| TransportError::InvalidFormat(e.to_string()))?;
                     server_writer
-                        .send(Message::Text(msg))
+                        .send(Message::Text(msg.into()))
                         .await
                         .map_err(|e| TransportError::WebSocket(e.to_string()))?;
                 }
