@@ -8,6 +8,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
 import { Contact } from "@/lib/response";
+import { AddContact } from "./AddContact";
 
 type ContactContextMenuProps = {
   children: React.ReactNode;
@@ -94,6 +95,7 @@ function ContactListv2() {
           </ContactContextMenu>
         );
       })}
+      <AddContact />
     </div>
   );
 }
