@@ -79,12 +79,31 @@
           }
           .${system};
 
-        packages = {
-          default = rustPlatform.buildRustPackage {
+        packages = rec {
+          default = pkgs.stdenv.mkDerivation {
+            name = "muchat";
+
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+
+            dontBuild = true;
+            dontUnpack = true;
+
+            installPhase = ''
+              mkdir -p $out/{share/muchat/bin,bin}
+
+              install -m 0755 ${muchat}/bin/muchat $out/bin/.muchat-unwrapped
+              install -m 0755 ${simplex-chat}/bin/simplex-chat $out/share/muchat/bin/simplex-chat
+
+              makeWrapper $out/bin/.muchat-unwrapped $out/bin/muchat \
+                --prefix PATH : $out/share/muchat/bin
+            '';
+          };
+
+          muchat = rustPlatform.buildRustPackage {
             buildInputs = dependencies;
             nativeBuildInputs = with pkgs; [ pkg-config ];
 
-            name = "muchat";
+            name = "muchat-ui";
             src = ./.;
             buildFeatures = [ ];
             cargoLock.lockFile = ./Cargo.lock;
