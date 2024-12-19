@@ -1,14 +1,14 @@
 import { useMemo } from "react";
-import classes from "@/chat.module.css";
+import classes from "@/components/features/chat/Chat/chat.module.css";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
-import MessageInput from "@/components/MessageInput/MessageInput";
-import CommandConsole from "./components/CommandConsole/CommandConsole";
-import { Avatar, AvatarFallback, AvatarImage } from "./components/Avatar";
+import MessageInput from "@/components/features/chat/MessageInput";
+import CommandConsole from "@/components/features/console/CommandConsole";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import clsx from "clsx";
 import { toast } from "sonner";
-import { Badge } from "./components/Badge";
+import { Badge } from "@/components/ui/Badge";
 
 type MessageBubbleProps = {
   heading?: string;

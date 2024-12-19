@@ -1,6 +1,6 @@
 import useChatContext from "@/useChatContext";
-import Button from "@/components/Button/Button";
-import { Avatar, AvatarFallback } from "../Avatar";
+import Button from "@/components/ui/Button";
+import { Avatar, AvatarFallback } from "../../ui/Avatar";
 import {
   ContextMenu,
   ContextMenuContent,

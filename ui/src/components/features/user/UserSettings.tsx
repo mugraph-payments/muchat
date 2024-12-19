@@ -1,13 +1,13 @@
-import Button from "@/components/Button/Button";
+import Button from "@/components/ui/Button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog";
+} from "@/components/ui/Dialog";
 import { CreateUserForm } from "@/components/forms/CreateUser";
-import { Separator } from "@/components/Separator";
+import { Separator } from "@/components/ui/Separator";
 import { parseSimplexWsChatError } from "@/lib/utils";
 import useChatContext from "@/useChatContext";
 import { useCallback, useState } from "react";

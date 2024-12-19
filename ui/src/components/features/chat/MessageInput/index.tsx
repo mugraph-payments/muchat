@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import classes from "@/components/MessageInput/MessageInput.module.css";
-import Button from "@/components/Button/Button";
+import classes from "@/components/features/chat/MessageInput/MessageInput.module.css";
+import Button from "@/components/ui/Button";
 import { commands as commandList } from "@/lib/command";
 
 type MessageInputProps = {

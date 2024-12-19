@@ -1,7 +1,7 @@
 import useChatContext from "@/useChatContext";
-import ContactListv2 from "@/components/ContactList/ContactListV2";
-import { Separator } from "@/components/Separator";
-import ActiveUserToggle from "../ActiveUserSelect/ActiveUserSelect";
+import ContactListv2 from "@/components/features/contacts/ContactList";
+import { Separator } from "@/components/ui/Separator";
+import ActiveUserToggle from "@/components/features/user/ActiveUserSelect";
 import { UserSettingsDialog } from "../features/user/UserSettings";
 
 function SideBar() {

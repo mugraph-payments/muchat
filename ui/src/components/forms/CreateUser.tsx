@@ -1,8 +1,8 @@
-import Button from "@/components/Button/Button";
+import Button from "@/components/ui/Button";
 import useChatContext from "@/useChatContext";
 import { useCallback, useState } from "react";
 import { Profile } from "@/lib/command";
-import { Input } from "@/components/Input";
+import { Input } from "@/components/ui/Input";
 import { EmptyProfile } from "@/lib/const";
 import { FormProps } from ".";
 import { parseSimplexWsChatError } from "@/lib/utils";

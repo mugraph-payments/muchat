@@ -1,6 +1,6 @@
 import useChatContext from "@/useChatContext";
 import { useSimplexCli } from "@/useSimplexCli";
-import Button from "@/components/Button/Button";
+import Button from "@/components/ui/Button";
 
 type CommandPanelProps = {
   client: ReturnType<typeof useSimplexCli>;

@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../Select";
+} from "@/components/ui/Select";
 import { ChatContextType } from "@/ChatContext";
 
 type ActiveUserSelectProps = Pick<ChatContextType, "users" | "activeUser"> & {

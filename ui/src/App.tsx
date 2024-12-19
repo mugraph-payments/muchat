@@ -1,6 +1,6 @@
-import Chat from "@/Chat";
-import SideBar from "@/components/SideBar/SideBar";
-import { Toaster } from "@/components/Sonner";
+import Chat from "@/components/features/chat/Chat";
+import SideBar from "@/components/ui/SideBar";
+import { Toaster } from "@/components/ui/Sonner";
 
 function App() {
   return (
