@@ -53,6 +53,12 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: ui/pnpm-lock.yaml
 
+      - name: Install UI Dependencies
+        run: |
+          cd ui
+          pnpm install
+          cd ..
+
       - name: Setup Rust
         if: matrix.platform != 'macos-latest'
         uses: dtolnay/rust-toolchain@stable
