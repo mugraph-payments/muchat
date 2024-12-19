@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ServerResponse } from "@/lib/response";
 import { ChatCommandMessage } from "@/lib/command";
 import useChatContext from "@/useChatContext";
-import MessageInput from "@/components/MessageInput/MessageInput";
-import { MessageBubble } from "@/Chat";
+import MessageInput from "@/components/features/chat/MessageInput";
+import { MessageBubble } from "@/components/features/chat/Chat";
 
 const CommandConsole = () => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
