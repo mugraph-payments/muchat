@@ -23,28 +23,22 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        inherit (builtins) attrValues;
-
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
           config.allowUnfree = true;
         };
 
-        inherit (pkgs) mkShell rust-bin writeShellApplication;
+        inherit (pkgs)
+          makeRustPlatform
+          mkShell
+          rust-bin
+          ;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-
-        scripts.muchat-watch = writeShellApplication {
-          name = "muchat-watch";
-          runtimeInputs = with pkgs; [
-            cargo-nextest
-            cargo-watch
-            rust
-          ];
-          text = ''
-            exec cargo watch -s 'cargo fmt && cargo clippy --all && cargo nextest run'
-          '';
+        rustPlatform = makeRustPlatform {
+          rustc = rust;
+          cargo = rust;
         };
 
         checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
@@ -63,7 +57,63 @@
           };
         };
 
-        packages.simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
+        dependencies =
+          with pkgs;
+          {
+            x86_64-linux = [
+              openssl
+              webkitgtk
+              gtk3
+              cairo
+              gdk-pixbuf
+              glib
+              dbus
+              openssl
+              librsvg
+              webkitgtk_4_1
+            ];
+
+            aarch64-darwin = [
+
+            ];
+          }
+          .${system};
+
+        packages = rec {
+          default = pkgs.stdenv.mkDerivation {
+            name = "muchat";
+
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+
+            dontBuild = true;
+            dontUnpack = true;
+
+            installPhase = ''
+              mkdir -p $out/{share/muchat/bin,bin}
+
+              install -m 0755 ${muchat}/bin/muchat $out/bin/.muchat-unwrapped
+              install -m 0755 ${simplex-chat}/bin/simplex-chat $out/share/muchat/bin/simplex-chat
+
+              makeWrapper $out/bin/.muchat-unwrapped $out/bin/muchat \
+                --prefix PATH : $out/share/muchat/bin
+            '';
+          };
+
+          muchat = rustPlatform.buildRustPackage {
+            buildInputs = dependencies;
+            nativeBuildInputs = with pkgs; [
+              pkg-config
+            ];
+
+            name = "muchat-ui";
+            src = ./.;
+            buildFeatures = [ ];
+            cargoLock.lockFile = ./Cargo.lock;
+            useNextest = true;
+          };
+
+          simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
+        };
       in
       {
         inherit checks packages;
@@ -74,8 +124,8 @@
           name = "muchat";
 
           buildInputs = with pkgs; [
-            (attrValues scripts)
-            (attrValues packages)
+            dependencies
+            packages.simplex-chat
 
             rust
 
@@ -84,18 +134,6 @@
             cargo-watch
             nodePackages.pnpm
             nodejs
-            openssl
-            pkg-config
-
-            webkitgtk
-            gtk3
-            cairo
-            gdk-pixbuf
-            glib
-            dbus
-            openssl
-            librsvg
-            webkitgtk_4_1
           ];
         };
       }
