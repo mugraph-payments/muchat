@@ -3,7 +3,7 @@ import { ServerResponse } from "@/lib/response";
 import { ChatCommandMessage } from "@/lib/command";
 import useChatContext from "@/useChatContext";
 import MessageInput from "@/components/features/chat/MessageInput";
-import { MessageBubble } from "@/components/features/chat/Chat";
+import { MessageBubble } from "@/components/features/chat/MessageBubble";
 
 const CommandConsole = () => {
   const consoleBoxRef = useRef<HTMLDivElement>(null);
