@@ -1,48 +1,13 @@
 import { useMemo } from "react";
-import classes from "@/components/features/chat/Chat/chat.module.css";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
 import MessageInput from "@/components/features/chat/MessageInput";
 import CommandConsole from "@/components/features/console/CommandConsole";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import clsx from "clsx";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge";
-
-type MessageBubbleProps = {
-  heading?: string;
-  children: React.ReactNode;
-  className?: string;
-  limitMessageLenght?: boolean;
-  side?: "left" | "right";
-};
-
-export const MessageBubble: React.FC<MessageBubbleProps> = ({
-  className,
-  heading,
-  children,
-  limitMessageLenght = true,
-  side = "left",
-}) => {
-  return (
-    <div
-      className={clsx(
-        classes.chatItem,
-        `${side === "right" && classes.chatItemRight}`,
-        limitMessageLenght
-          ? `max-h-44 overflow-hidden line-clamp-3 text-ellipsis`
-          : null,
-        className,
-      )}
-    >
-      {heading && (
-        <span className={`${classes.chatItemHeading}`}>{heading}</span>
-      )}
-      {children}
-    </div>
-  );
-};
+import { MessageBubble } from "./MessageBubble";
 
 const Chat = () => {
   const {
@@ -107,7 +72,7 @@ const Chat = () => {
   const contactAvatar = selectedContact?.profile.image;
 
   return (
-    <div className={classes.container}>
+    <div className={`w-full h-full flex flex-col gap-2`}>
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2">
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarImage
@@ -131,7 +96,10 @@ const Chat = () => {
         <CommandConsole />
       </div>
       <div className="flex flex-col h-full p-4 gap-2 overflow-hidden">
-        <div id="messages" className={classes.chatBody}>
+        <div
+          id="messages"
+          className={`overflow-y-auto p-2 flex flex-col max-h-full gap-2 flex-grow border-muted border rounded`}
+        >
           {selectedChatId === -1
             ? null
             : DirectChat(selectedChat, selectedContact ?? null)}
