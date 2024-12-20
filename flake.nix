@@ -59,7 +59,11 @@
               packageOverrides.cargo = rust;
             };
 
-            prettier.enable = true;
+            prettier = {
+              enable = true;
+
+              excludes = [ "pnpm-lock.yaml" ];
+            };
           };
         };
 
