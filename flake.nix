@@ -31,21 +31,7 @@
           config.allowUnfree = true;
         };
 
-        inherit (pkgs) mkShell rust-bin writeShellApplication;
-
-        rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-
-        scripts.muchat-watch = writeShellApplication {
-          name = "muchat-watch";
-          runtimeInputs = with pkgs; [
-            cargo-nextest
-            cargo-watch
-            rust
-          ];
-          text = ''
-            exec cargo watch -s 'cargo fmt && cargo clippy --all && cargo nextest run'
-          '';
-        };
+        muchat = import ./lib.nix pkgs;
 
         checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
@@ -56,48 +42,41 @@
 
             rustfmt = {
               enable = true;
-              packageOverrides.cargo = rust;
+              packageOverrides.cargo = muchat.packages.rust;
             };
 
-            prettier.enable = true;
+            prettier = {
+              enable = true;
+
+              excludes = [ "pnpm-lock.yaml" ];
+            };
           };
         };
 
-        packages.simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
       in
       {
-        inherit checks packages;
+        inherit checks;
+        inherit (muchat) packages;
 
-        devShells.default = mkShell {
-          inherit (checks.pre-commit-check) shellHook;
+        devShells.default =
+          with pkgs;
+          mkShell {
+            inherit (checks.pre-commit-check) shellHook;
 
-          name = "muchat";
+            name = "muchat-shell";
+            inputsFrom = attrValues muchat.packages;
 
-          buildInputs = with pkgs; [
-            (attrValues scripts)
-            (attrValues packages)
+            buildInputs = with pkgs; [
+              muchat.packages.simplex-chat
+              muchat.packages.rust
 
-            rust
-
-            cargo-edit
-            cargo-tauri
-            cargo-watch
-            nodePackages.pnpm
-            nodejs
-            openssl
-            pkg-config
-
-            webkitgtk
-            gtk3
-            cairo
-            gdk-pixbuf
-            glib
-            dbus
-            openssl
-            librsvg
-            webkitgtk_4_1
-          ];
-        };
+              cargo-edit
+              cargo-tauri
+              cargo-watch
+              nodePackages.pnpm
+              nodejs
+            ];
+          };
       }
     );
 }

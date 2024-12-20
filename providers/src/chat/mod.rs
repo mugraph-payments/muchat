@@ -3,7 +3,7 @@ use std::sync::Arc;
 use client::{ChatClient, StreamMessage};
 use commands::ChatCommand;
 use error::TransportError;
-use futures::{pin_mut, Stream, StreamExt};
+use futures::{Stream, StreamExt, pin_mut};
 use response::{ChatInfo, ChatInfoType, ChatResponse, DirectionType};
 use tokio::{
     self,
