@@ -31,20 +31,7 @@
           config.allowUnfree = true;
         };
 
-        inherit (pkgs)
-          callPackage
-          makeRustPlatform
-          makeWrapper
-          mkShell
-          rust-bin
-          stdenv
-          ;
-
-        rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-        rustPlatform = makeRustPlatform {
-          rustc = rust;
-          cargo = rust;
-        };
+        muchat = import ./lib.nix pkgs;
 
         checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
@@ -55,7 +42,7 @@
 
             rustfmt = {
               enable = true;
-              packageOverrides.cargo = rust;
+              packageOverrides.cargo = muchat.packages.rust;
             };
 
             prettier = {
@@ -66,61 +53,30 @@
           };
         };
 
-        packages = rec {
-          default = stdenv.mkDerivation {
-            name = "muchat";
-
-            nativeBuildInputs = [ makeWrapper ];
-
-            dontBuild = true;
-            dontUnpack = true;
-
-            installPhase = ''
-              mkdir -p $out/{share/muchat/bin,bin}
-
-              install -m 0755 ${ui}/bin/muchat $out/bin/.muchat-unwrapped
-              install -m 0755 ${simplex-chat}/bin/simplex-chat $out/share/muchat/bin/simplex-chat
-
-              makeWrapper $out/bin/.muchat-unwrapped $out/bin/muchat \
-                --prefix PATH : $out/share/muchat/bin
-            '';
-          };
-
-          frontend = callPackage ./ui { };
-
-          ui = callPackage ./ui/src-tauri {
-            muchat = {
-              inherit packages rust rustPlatform;
-
-              src = ./.;
-              cargoLock.lockFile = ./Cargo.lock;
-            };
-          };
-
-          simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
-        };
       in
       {
-        inherit checks packages;
+        inherit checks;
+        inherit (muchat) packages;
 
-        devShells.default = mkShell {
-          inherit (checks.pre-commit-check) shellHook;
+        devShells.default =
+          with pkgs;
+          mkShell {
+            inherit (checks.pre-commit-check) shellHook;
 
-          name = "muchat";
-          inputsFrom = attrValues packages;
+            name = "muchat-shell";
+            inputsFrom = attrValues muchat.packages;
 
-          buildInputs = with pkgs; [
-            packages.simplex-chat
+            buildInputs = with pkgs; [
+              muchat.packages.simplex-chat
+              muchat.packages.rust
 
-            rust
-
-            cargo-edit
-            cargo-tauri
-            cargo-watch
-            nodePackages.pnpm
-            nodejs
-          ];
-        };
+              cargo-edit
+              cargo-tauri
+              cargo-watch
+              nodePackages.pnpm
+              nodejs
+            ];
+          };
       }
     );
 }

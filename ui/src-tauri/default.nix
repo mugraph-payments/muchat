@@ -1,24 +1,55 @@
 {
-  stdenv,
-  pkg-config,
-  openssl,
-  webkitgtk,
-  gtk3,
   cairo,
+  dbus,
   gdk-pixbuf,
   glib,
-  dbus,
-  librsvg,
-  webkitgtk_4_1,
-  muchat,
+  gnused,
+  gtk3,
   lib,
+  librsvg,
+  muchat,
+  openssl,
+  pkg-config,
+  pnpm,
+  stdenv,
+  webkitgtk,
+  webkitgtk_4_1,
 }:
 let
-  inherit (muchat) rustPlatform;
-  inherit (lib) optionals;
+  inherit (lib) optionals splitString;
+  inherit (muchat.lib) loadTOML rustPlatform src;
   inherit (stdenv) isDarwin isLinux;
 
-  dependencies =
+  cargoTOML = loadTOML ./Cargo.toml;
+
+  toPatch =
+    with builtins;
+    path: target:
+    let
+      content = readFile path;
+      lines = splitString "\n" content;
+      additions = map (line: "+" + line) lines;
+      diffBody = concatStringsSep "\n" additions;
+      lineCount = length lines;
+    in
+    toFile "${target}.patch" ''
+      diff --git a/${target} b/${target}
+      new file mode 100644
+      index 0000000..e69de29
+      --- /dev/null
+      +++ b/${target}
+      @@ -0,0 +1,${toString lineCount} @@
+      ${diffBody}
+    '';
+
+in
+rustPlatform.buildRustPackage {
+  inherit (cargoTOML.package) name version;
+
+  src = "${src}/ui/src-tauri";
+  cargoLock.lockFile = "${src}/Cargo.lock";
+
+  buildInputs =
     [ ]
     ++ optionals isLinux [
       openssl
@@ -32,18 +63,17 @@ let
       webkitgtk_4_1
     ]
     ++ optionals isDarwin [ ];
-in
-rustPlatform.buildRustPackage {
-  inherit (muchat) cargoLock src;
 
-  buildInputs = dependencies;
-  nativeBuildInputs = [ pkg-config ];
+  nativeBuildInputs = [
+    gnused
+    pkg-config
+  ];
 
-  name = "muchat-ui";
-  cargoBuildFlags = [ "-p muchat-ui" ];
   useNextest = true;
 
-  postPatch = ''
-    cp -rf ${muchat.packages.frontend} ui/dist
+  patches = [ (toPatch "${src}/Cargo.lock" "Cargo.lock") ];
+
+  patchPhase = ''
+    sed -i -e "s;../dist;${muchat.packages.frontend};g" tauri.conf.json
   '';
 }

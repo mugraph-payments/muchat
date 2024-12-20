@@ -2,9 +2,11 @@
   nodejs,
   pnpm,
   stdenv,
+  muchat,
 }:
 let
-  inherit (builtins) fromJSON readFile;
+  inherit (builtins) filterSource fromJSON readFile;
+  inherit (muchat.lib) baseName;
   inherit (stdenv) mkDerivation;
 
   package-json = fromJSON (readFile ./package.json);
@@ -13,7 +15,7 @@ mkDerivation (final: {
   inherit (package-json) version;
   pname = package-json.name;
 
-  src = ./.;
+  src = filterSource (name: _: !(baseName name == "src-tauri")) ./.;
 
   nativeBuildInputs = [
     nodejs
