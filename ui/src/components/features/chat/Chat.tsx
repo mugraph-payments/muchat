@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge";
 import { MessageBubble } from "./MessageBubble";
+import { SidebarTrigger } from "@/components/ui/Sidebar";
 
 const Chat = () => {
   const {
@@ -49,7 +50,7 @@ const Chat = () => {
         <div key={index}>
           {msg.content.type === "rcvMsgContent" && (
             <MessageBubble
-                heading={contact?.localDisplayName ?? "No Display Name"}
+              heading={contact?.localDisplayName ?? "No Display Name"}
               side="right"
               key={index}
             >
@@ -74,17 +75,24 @@ const Chat = () => {
 
   return (
     <div className={`w-full h-full flex flex-col gap-2`}>
-      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2">
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarImage
-            src={contactAvatar}
-            alt={selectedContact?.localDisplayName}
-          />
-          <AvatarFallback>
-            {contactName ? contactName.charAt(0).toUpperCase() : "D"}
-          </AvatarFallback>
-        </Avatar>
-        <h2>{contactName ?? "Debug"}</h2>
+      {/* Chat Topbar */}
+      <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2 shrink-0">
+        <div className="mr-4">
+          <SidebarTrigger />
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarImage
+              src={contactAvatar}
+              alt={selectedContact?.localDisplayName}
+            />
+            <AvatarFallback>
+              {contactName ? contactName.charAt(0).toUpperCase() : "D"}
+            </AvatarFallback>
+          </Avatar>
+          <h2>{contactName ?? "Debug"}</h2>
+        </div>
         <Badge
           className="ml-auto"
           variant={isConnected ? "default" : "destructive"}
@@ -96,10 +104,10 @@ const Chat = () => {
       <div>
         <CommandConsole />
       </div>
-      <div className="flex flex-col h-full p-4 gap-2 overflow-hidden">
+      <div className="flex flex-col flex-1 p-4 gap-2 overflow-hidden">
         <div
           id="messages"
-          className={`overflow-y-auto p-2 flex flex-col max-h-full gap-2 flex-grow border-muted border rounded`}
+          className={`overflow-y-auto p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
         >
           {selectedChatId === -1
             ? null
