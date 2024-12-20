@@ -1,27 +1,27 @@
 use std::{
     sync::{
-        atomic::{AtomicU16, Ordering},
         Arc,
+        atomic::{AtomicU16, Ordering},
     },
     time::Duration,
 };
 
 use async_stream::try_stream;
 use futures::{
-    stream::{SplitSink, SplitStream},
     Future,
     SinkExt,
     Stream,
     StreamExt,
+    stream::{SplitSink, SplitStream},
 };
 use tokio::{
     net::TcpStream,
     sync::{
-        mpsc::{self, Receiver, Sender},
         Mutex,
+        mpsc::{self, Receiver, Sender},
     },
 };
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async, tungstenite::Message};
 
 use super::{
     commands::{CommandData, CommandPayload, ComposedMessage},

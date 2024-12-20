@@ -49,7 +49,7 @@ const Chat = () => {
         <div key={index}>
           {msg.content.type === "rcvMsgContent" && (
             <MessageBubble
-                heading={contact?.localDisplayName ?? "No Display Name"}
+              heading={contact?.localDisplayName ?? "No Display Name"}
               side="right"
               key={index}
             >
