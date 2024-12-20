@@ -99,6 +99,8 @@
             '';
           };
 
+          frontend = pkgs.callPackage ./ui { };
+
           muchat = rustPlatform.buildRustPackage {
             buildInputs = dependencies;
             nativeBuildInputs = with pkgs; [ pkg-config ];
