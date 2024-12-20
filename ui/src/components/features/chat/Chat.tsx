@@ -75,7 +75,6 @@ const Chat = () => {
 
   return (
     <div className={`w-full h-full flex flex-col gap-2`}>
-      {/* Chat Topbar */}
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2 shrink-0">
         <div className="mr-4">
           <SidebarTrigger />

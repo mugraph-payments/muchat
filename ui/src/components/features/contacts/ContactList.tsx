@@ -67,7 +67,7 @@ function ContactListv2() {
         return (
           <ContactContextMenu key={index} onDelete={onDelete} contact={contact}>
             <Button
-              className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
+              className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
                 selectedChatId == cId
                   ? "bg-theme-text text-background"
                   : "bg-muted text-muted-foreground"
