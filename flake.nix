@@ -68,7 +68,12 @@
 
           hooks = {
             deadnix.enable = true;
-            nixfmt-rfc-style.enable = true;
+
+            nixfmt-rfc-style = {
+              enable = true;
+              args = [ "--strict" ];
+            };
+
             prettier.enable = true;
 
             rustfmt = {
