@@ -75,7 +75,7 @@ const CommandConsole = () => {
 
   return (
     <div
-      className={`space-y-4 mb-4 absolute top-0 left-0 w-full bg-background p-4 ${
+      className={`z-50 space-y-4 mb-4 absolute top-0 left-0 w-full bg-background p-4 ${
         isActive ? "opacity-100 visible" : "opacity-0 invisible"
       } transition-opacity duration-150 shadow-md`}
     >

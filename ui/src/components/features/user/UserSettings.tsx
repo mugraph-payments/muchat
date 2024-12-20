@@ -12,10 +12,16 @@ import { parseSimplexWsChatError } from "@/lib/utils";
 import useChatContext from "@/useChatContext";
 import { useCallback, useState } from "react";
 
-export const UserSettingsDialog = () => {
+type UserSettingsDialogProps = {
+  children: React.ReactNode;
+};
+
+export const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({
+  children,
+}) => {
   return (
     <Dialog>
-      <DialogTrigger>User Settings</DialogTrigger>
+      <DialogTrigger>{children}</DialogTrigger>
       <DialogContent aria-describedby="User Settings">
         <DialogHeader>
           <DialogTitle>User Settings</DialogTitle>
