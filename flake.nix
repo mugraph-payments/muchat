@@ -74,7 +74,15 @@
               args = [ "--strict" ];
             };
 
-            prettier.enable = true;
+            prettier = {
+              enable = true;
+
+              excludes = [
+                "Cargo.lock"
+                "flake.lock"
+                "pnpm-lock.yaml"
+              ];
+            };
 
             rustfmt = {
               enable = true;
