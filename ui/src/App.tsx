@@ -1,16 +1,18 @@
 import Chat from "@/components/features/chat/Chat";
-import SideBar from "@/components/ui/SideBar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/Sidebar";
 import { Toaster } from "@/components/ui/Sonner";
+import { AppSidebar } from "./components/features/AppSidebar";
 
 function App() {
   return (
-    <>
-      <main className="flex">
-        <SideBar />
+    <SidebarProvider>
+      <main className="flex w-full">
+        <AppSidebar />
+        <SidebarTrigger />
         <Chat />
       </main>
       <Toaster />
-    </>
+    </SidebarProvider>
   );
 }
 
