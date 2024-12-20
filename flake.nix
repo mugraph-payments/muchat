@@ -23,13 +23,22 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        inherit (builtins) attrValues;
+
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
           config.allowUnfree = true;
         };
 
-        inherit (pkgs) makeRustPlatform mkShell rust-bin;
+        inherit (pkgs)
+          callPackage
+          makeRustPlatform
+          makeWrapper
+          mkShell
+          rust-bin
+          stdenv
+          ;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         rustPlatform = makeRustPlatform {
@@ -57,33 +66,11 @@
           };
         };
 
-        dependencies =
-          with pkgs;
-          {
-            x86_64-linux = [
-              openssl
-              webkitgtk
-              gtk3
-              cairo
-              gdk-pixbuf
-              glib
-              dbus
-              openssl
-              librsvg
-              webkitgtk_4_1
-            ];
-
-            aarch64-darwin = [
-
-            ];
-          }
-          .${system};
-
         packages = rec {
-          default = pkgs.stdenv.mkDerivation {
+          default = stdenv.mkDerivation {
             name = "muchat";
 
-            nativeBuildInputs = [ pkgs.makeWrapper ];
+            nativeBuildInputs = [ makeWrapper ];
 
             dontBuild = true;
             dontUnpack = true;
@@ -91,7 +78,7 @@
             installPhase = ''
               mkdir -p $out/{share/muchat/bin,bin}
 
-              install -m 0755 ${muchat}/bin/muchat $out/bin/.muchat-unwrapped
+              install -m 0755 ${ui}/bin/muchat $out/bin/.muchat-unwrapped
               install -m 0755 ${simplex-chat}/bin/simplex-chat $out/share/muchat/bin/simplex-chat
 
               makeWrapper $out/bin/.muchat-unwrapped $out/bin/muchat \
@@ -99,17 +86,15 @@
             '';
           };
 
-          frontend = pkgs.callPackage ./ui { };
+          frontend = callPackage ./ui { };
 
-          muchat = rustPlatform.buildRustPackage {
-            buildInputs = dependencies;
-            nativeBuildInputs = with pkgs; [ pkg-config ];
+          ui = callPackage ./ui/src-tauri {
+            muchat = {
+              inherit packages rust rustPlatform;
 
-            name = "muchat-ui";
-            src = ./.;
-            buildFeatures = [ ];
-            cargoLock.lockFile = ./Cargo.lock;
-            useNextest = true;
+              src = ./.;
+              cargoLock.lockFile = ./Cargo.lock;
+            };
           };
 
           simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
@@ -122,9 +107,9 @@
           inherit (checks.pre-commit-check) shellHook;
 
           name = "muchat";
+          inputsFrom = attrValues packages;
 
           buildInputs = with pkgs; [
-            dependencies
             packages.simplex-chat
 
             rust
