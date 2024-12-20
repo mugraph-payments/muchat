@@ -19,7 +19,6 @@ body {
   height: 100%;
   max-height: 100vh;
   overflow: hidden;
-
   @apply text-foreground bg-background;
 }
 
@@ -100,6 +99,15 @@ main {
     --chart-3: var(--theme-sapphire);
     --chart-4: var(--theme-yellow);
     --chart-5: var(--theme-peach);
+
+    --sidebar-background: var(--theme-mantle);
+    --sidebar-foreground: var(--theme-text);
+    --sidebar-primary: var(--theme-blue);
+    --sidebar-primary-foreground: var(--theme-text);
+    --sidebar-accent: var(--theme-surface0);
+    --sidebar-accent-foreground: var(--theme-text);
+    --sidebar-border: var(--theme-surface0);
+    --sidebar-ring: var(--theme-blue);
   }
 
   /* Scrollbar */
@@ -127,10 +135,24 @@ main {
   ::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--accent));
   }
+
+  html,
+  body {
+    @apply text-foreground bg-background;
+  }
 }
 
 @layer components {
   input {
     @apply bg-theme-surface2 text-input;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
