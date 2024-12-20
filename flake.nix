@@ -31,7 +31,12 @@
           config.allowUnfree = true;
         };
 
-        inherit (pkgs) mkShell rust-bin writeShellApplication;
+        inherit (pkgs)
+          mkShell
+          rust-bin
+          stdenv
+          writeShellApplication
+          ;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
 
@@ -47,19 +52,32 @@
           '';
         };
 
+        rustfmt = stdenv.mkDerivation {
+          name = "muchat-rustfmt";
+          dontBuild = true;
+          dontUnpack = true;
+          installPhase = ''
+            mkdir -p $out/bin
+            ln -s ${rust-bin.nightly.latest.default}/bin/rustfmt $out/bin/rustfmt
+            ln -s ${rust-bin.nightly.latest.default}/bin/cargo-fmt $out/bin/cargo-fmt
+          '';
+        };
+
         checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
 
           hooks = {
             deadnix.enable = true;
             nixfmt-rfc-style.enable = true;
+            prettier.enable = true;
 
             rustfmt = {
               enable = true;
-              packageOverrides.cargo = rust;
+              packageOverrides = {
+                inherit rustfmt;
+                cargo = rust-bin.nightly.latest.default;
+              };
             };
-
-            prettier.enable = true;
           };
         };
 
@@ -78,6 +96,7 @@
             (attrValues packages)
 
             rust
+            rustfmt
 
             cargo-edit
             cargo-tauri
