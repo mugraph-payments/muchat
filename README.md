@@ -1,6 +1,6 @@
 # Muchat
 
-Muchat (pronounced *"mew-chat"*) is the everything app, if it was open-source, private, fully encripted and under user control, not big companies with questionable data practices and shady goals.
+Muchat (pronounced _"mew-chat"_) is the everything app, if it was open-source, private, fully encripted and under user control, not big companies with questionable data practices and shady goals.
 
 In a nutshell, Muchat binds together the state of the art in secure, uncensorable communication, namely:
 
