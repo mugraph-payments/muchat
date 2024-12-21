@@ -3,6 +3,7 @@ import ContactListv2 from "@/components/features/contacts/ContactList";
 import { Separator } from "@/components/ui/Separator";
 import ActiveUserToggle from "@/components/features/user/ActiveUserSelect";
 import { UserSettingsDialog } from "../features/user/UserSettings";
+import SearchBar from "../features/contacts/SearchBar";
 
 function SideBar() {
   const { client, activeUser, contacts, users } = useChatContext();
@@ -11,6 +12,7 @@ function SideBar() {
       <h1 className="text-2xl">Chats ({contacts.size})</h1>
       <Separator />
       <div>
+        <SearchBar />
         <ContactListv2 />
       </div>
       <div className="mt-auto space-y-2">
