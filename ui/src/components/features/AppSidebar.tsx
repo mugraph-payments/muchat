@@ -13,6 +13,7 @@ import ContactListv2 from "./contacts/ContactList";
 import { UserSettingsDialog } from "./user/UserSettings";
 import ActiveUserSelect from "./user/ActiveUserSelect";
 import useChatContext from "@/useChatContext";
+import { SearchBar } from "./SearchBar";
 
 const items = [
   {
@@ -33,6 +34,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <ContactListv2 />
+            <SearchBar />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup className="mt-auto mb-4">
