@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge";
 import { MessageBubble } from "./MessageBubble";
 import { SidebarTrigger } from "@/components/ui/Sidebar";
+import { GroupInvitationBubble } from "./GroupInvitationBubble";
 
 const Chat = () => {
   const {
@@ -64,6 +65,14 @@ const Chat = () => {
             >
               {msg.content.msgContent.text}
             </MessageBubble>
+          );
+        case "rcvGroupInvitation":
+          return (
+            <GroupInvitationBubble
+              key={index}
+              groupInvitation={msg.content.groupInvitation}
+              side="right"
+            />
           );
         default:
           return (
