@@ -253,6 +253,10 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "apiDeleteContact", contactId });
   }
 
+  async joinGroup(groupName: string) {
+    return await this.sendChatCommand({ type: "joinGroup", groupName });
+  }
+
   public async disconnect() {
     console.log(`🟥 Disconnecting ...`);
     await this.ws.disconnect().catch((e) => console.error(e));
