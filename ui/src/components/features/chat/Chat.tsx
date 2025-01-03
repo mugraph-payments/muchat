@@ -45,10 +45,17 @@ const Chat = () => {
 
   const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
     return messages.map((msg, index) => {
-      return msg.content.type === "sndMsgContent" ||
-        msg.content.type === "rcvMsgContent" ? (
-        <div key={index}>
-          {msg.content.type === "rcvMsgContent" && (
+      switch (msg.content.type) {
+        case "sndMsgContent":
+          <MessageBubble
+            heading={activeUser?.localDisplayName ?? "No Display Name"}
+            key={index}
+          >
+            {msg.content.msgContent.text}
+          </MessageBubble>;
+          break;
+        case "rcvMsgContent":
+          return (
             <MessageBubble
               heading={contact?.localDisplayName ?? "No Display Name"}
               side="right"
@@ -56,17 +63,18 @@ const Chat = () => {
             >
               {msg.content.msgContent.text}
             </MessageBubble>
-          )}
-          {msg.content.type === "sndMsgContent" && (
+          );
+        default:
+          return (
             <MessageBubble
-              heading={activeUser?.localDisplayName ?? "No Display Name"}
+              heading={`Unkown Message: ${msg.content.type}`}
+              side={msg.content.type.startsWith("snd") ? "left" : "right"}
               key={index}
             >
-              {msg.content.msgContent.text}
+              {JSON.stringify(msg.content)}
             </MessageBubble>
-          )}
-        </div>
-      ) : null;
+          );
+      }
     });
   };
 
@@ -74,7 +82,7 @@ const Chat = () => {
   const contactAvatar = selectedContact?.profile.image;
 
   return (
-    <div className={`w-full h-full flex flex-col gap-2`}>
+    <div className={`w-full h-full flex flex-col gap-2 overflow-hidden`}>
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2 shrink-0">
         <div className="mr-4">
           <SidebarTrigger />
@@ -106,7 +114,7 @@ const Chat = () => {
       <div className="flex flex-col flex-1 p-4 gap-2 overflow-hidden">
         <div
           id="messages"
-          className={`overflow-y-auto p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
+          className={`overflow-y-auto overflow-x-hidden p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
         >
           {selectedChatId === -1
             ? null
