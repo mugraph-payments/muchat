@@ -15,11 +15,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   children,
   limitMessageLenght = false,
   side = "left",
-  key,
+  ...props
 }) => {
   return (
     <div
-      key={key}
+      {...props}
       className={clsx(
         "p-2 px-4 rounded bg-theme-surface0 flex flex-col gap-1 w-fit max-w-full break-words",
         `${side === "right" && `ml-auto`}`,

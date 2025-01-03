@@ -47,13 +47,14 @@ const Chat = () => {
     return messages.map((msg, index) => {
       switch (msg.content.type) {
         case "sndMsgContent":
-          <MessageBubble
-            heading={activeUser?.localDisplayName ?? "No Display Name"}
-            key={index}
-          >
-            {msg.content.msgContent.text}
-          </MessageBubble>;
-          break;
+          return (
+            <MessageBubble
+              heading={activeUser?.localDisplayName ?? "No Display Name"}
+              key={index}
+            >
+              {msg.content.msgContent.text}
+            </MessageBubble>
+          );
         case "rcvMsgContent":
           return (
             <MessageBubble
