@@ -179,6 +179,12 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
       });
       setGroups(newGroups);
     },
+    onGroupDeletedUser: (data) => {
+      setGroups((g) => {
+        g.delete(data.groupInfo.groupId);
+        return g;
+      });
+    },
   });
 
   return (
