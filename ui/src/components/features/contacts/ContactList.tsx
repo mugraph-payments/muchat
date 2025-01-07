@@ -100,7 +100,8 @@ export function ContactCard({ contact }: { contact: Contact }) {
 
 export function GroupContactCard({ group }: { group: GroupInfo }) {
   {
-    const { directChats, setSelectedChatId, selectedChatId } = useChatContext();
+    const { client, directChats, setSelectedChatId, selectedChatId } =
+      useChatContext();
     const contactId = group ? group.groupId : -1;
     const chatKey = getChatKey({ group });
     const displayName = group ? group.localDisplayName : "No display name";
@@ -110,7 +111,13 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
       message?.content.type === "sndMsgContent" &&
       message.content.msgContent?.text;
 
-    const onDelete = () => {};
+    const onDelete = () => {
+      if (!group) return;
+      client.current?.leaveGroup(group.groupId).then(async (corrId: string) => {
+        // TODO: display feedback
+        await client.current?.waitCommandResponse(corrId);
+      });
+    };
 
     return (
       <ContactContextMenu key={contactId} onDelete={onDelete}>
