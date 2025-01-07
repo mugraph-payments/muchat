@@ -10,15 +10,21 @@ import {
 import { Contact, GroupInfo } from "@/lib/response";
 import { AddContact } from "./AddContact";
 import { getChatKey } from "@/ChatContext";
+import { useState } from "react";
+import { toastError } from "@/lib/error";
+import { toast } from "sonner";
 
 type ContactContextMenuProps = {
   children: React.ReactNode;
-  onDelete: () => void;
+  items: Array<{
+    label: string;
+    callback: () => void;
+  }>;
 };
 
 export function ContactContextMenu({
   children,
-  onDelete,
+  items,
 }: ContactContextMenuProps) {
   return (
     <ContextMenu>
@@ -26,9 +32,9 @@ export function ContactContextMenu({
         <div>{children}</div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64">
-        <ContextMenuItem inset onClick={onDelete}>
-          Delete
-        </ContextMenuItem>
+        {items.map(({ label, callback }) => (
+          <ContextMenuItem onClick={callback}>{label}</ContextMenuItem>
+        ))}
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -68,7 +74,10 @@ export function ContactCard({ contact }: { contact: Contact }) {
     };
 
     return (
-      <ContactContextMenu key={contactId} onDelete={onDelete}>
+      <ContactContextMenu
+        key={contactId}
+        items={[{ label: "Delete", callback: onDelete }]}
+      >
         <Button
           className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
             selectedChatId == chatKey
@@ -102,6 +111,7 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
   {
     const { client, directChats, setSelectedChatId, selectedChatId } =
       useChatContext();
+    const [isLoading, setLoading] = useState(false);
     const contactId = group ? group.groupId : -1;
     const chatKey = getChatKey({ group });
     const displayName = group ? group.localDisplayName : "No display name";
@@ -111,16 +121,28 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
       message?.content.type === "sndMsgContent" &&
       message.content.msgContent?.text;
 
-    const onDelete = () => {
+    const onLeave = () => {
       if (!group) return;
-      client.current?.leaveGroup(group.groupId).then(async (corrId: string) => {
-        // TODO: display feedback
-        await client.current?.waitCommandResponse(corrId);
-      });
+      setLoading(true);
+      client.current
+        ?.leaveGroup(group.groupId)
+        .then(async (corrId) => {
+          const data = await client.current?.waitCommandResponse(corrId);
+          if (data?.type === "chatCmdError") {
+            toastError(data);
+          } else {
+            toast(`Left ${group.localDisplayName}`);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     };
 
     return (
-      <ContactContextMenu key={contactId} onDelete={onDelete}>
+      <ContactContextMenu
+        key={contactId}
+        items={[{ label: "Leave", callback: onLeave }]}
+      >
         <Button
           className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
             selectedChatId == chatKey
@@ -130,6 +152,7 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
           onClick={() => {
             setSelectedChatId(chatKey);
           }}
+          loading={isLoading}
         >
           <div className="flex items-center gap-3 w-full">
             <Avatar className="h-8 w-8 shrink-0">

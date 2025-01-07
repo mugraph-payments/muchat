@@ -68,7 +68,7 @@ const Chat = () => {
     }
   };
 
-  const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
+  const ChatMessages = (messages: ChatItem[], contact?: Contact) => {
     return messages.map((msg, index) => {
       switch (msg.content.type) {
         case "sndMsgContent":
@@ -80,16 +80,22 @@ const Chat = () => {
               {msg.content.msgContent.text}
             </MessageBubble>
           );
-        case "rcvMsgContent":
+        case "rcvMsgContent": {
+          let displayName = "No Display Name";
+          switch (msg.chatDir.type) {
+            case "groupRcv":
+              displayName = msg.chatDir.groupMember.localDisplayName;
+              break;
+            case "directRcv":
+              displayName = contact ? contact?.localDisplayName : displayName;
+              break;
+          }
           return (
-            <MessageBubble
-              heading={contact?.localDisplayName ?? "No Display Name"}
-              side="right"
-              key={index}
-            >
+            <MessageBubble heading={displayName} side="right" key={index}>
               {msg.content.msgContent.text}
             </MessageBubble>
           );
+        }
         case "rcvGroupInvitation":
           return (
             <GroupInvitationBubble
@@ -149,7 +155,7 @@ const Chat = () => {
         >
           {selectedChatId === ""
             ? null
-            : DirectChat(selectedChat, selectedContact ?? null)}
+            : ChatMessages(selectedChat, selectedContact)}
         </div>
         <MessageInput onSubmit={handleSendMessage} />
       </div>
