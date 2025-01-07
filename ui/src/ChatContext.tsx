@@ -8,6 +8,7 @@ import {
   User,
   UserInfo,
   ChatInfoType,
+  Group,
 } from "@/lib/response";
 import { useSimplexCli } from "./useSimplexCli";
 import { ChatType } from "./lib/command";
@@ -32,6 +33,8 @@ export interface ChatContextType {
   setActiveUser: (user: User | null) => void;
   contactLink: UserContactLink | null;
   setContactLink: (c: UserContactLink) => void;
+  groups: Map<number, Group>;
+  setGroups: (groups: Map<number, Group>) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -40,6 +43,7 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<ServerResponse[]>([]);
   const [contacts, setContacts] = useState<Map<number, Contact>>(new Map([]));
+  const [groups, setGroups] = useState<Map<number, Group>>(new Map());
   const [directChats, setDirectChats] = useState<Map<number, ChatItem[]>>(
     new Map(),
   );
@@ -126,6 +130,13 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
         new Map(data.contacts.map((contact) => [contact.contactId, contact])),
       );
     },
+    onGroups: ({ groups }) => {
+      const newGroups = new Map();
+      groups.forEach(([groupInfo]) => {
+        newGroups.set(groupInfo.groupId, groupInfo);
+      });
+      setGroups(newGroups);
+    },
   });
 
   return (
@@ -150,6 +161,8 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
         setContacts,
         directChats,
         setDirectChats: updateDirectChats,
+        groups,
+        setGroups,
       }}
     >
       {children}

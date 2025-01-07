@@ -104,7 +104,8 @@ export type ChatResponse =
   | CRMessageError
   | CRChatCmdError
   | CRChatError
-  | CRContactsList;
+  | CRContactsList
+  | CRGroupsList;
 
 // not included
 // CRChatItemDeletedNotFound
@@ -204,7 +205,8 @@ export type ChatResponseTag =
   | "messageError"
   | "chatCmdError"
   | "chatError"
-  | "contactsList";
+  | "contactsList"
+  | "groupsList";
 
 interface CR {
   type: ChatResponseTag;
@@ -777,6 +779,12 @@ export interface CRChatError extends CR {
   chatError: ChatError;
 }
 
+export interface CRGroupsList extends CR {
+  type: "groupsList";
+  groups: Array<[GroupInfo, { currentMembers: number }]>;
+  user?: User;
+}
+
 export interface User {
   userId: number;
   agentUserId: string;
@@ -862,7 +870,17 @@ export interface GroupInfo {
   localDisplayName: string;
   groupProfile: GroupProfile;
   membership: GroupMember;
-  createdAt: Date;
+  createdAt: string;
+  chatSettings?: ChatSettings;
+  chatTs?: string;
+  // fullGroupPreferences?: FullGroupPreferences;
+  updatedAt?: string;
+  userMemberProfileSentAt?: string;
+}
+
+export interface ChatSettings {
+  enableNtfs: string;
+  favorite: boolean;
 }
 
 export interface GroupProfile {
@@ -875,11 +893,11 @@ export interface GroupMember {
   groupMemberId: number;
   memberId: string;
   memberRole: GroupMemberRole;
-  // memberCategory: GroupMemberCategory
+  memberCategory: GroupMemberRole;
   // memberStatus: GroupMemberStatus
   // invitedBy: InvitedBy
   localDisplayName: string;
-  memberProfile: Profile;
+  memberProfile?: Profile;
   memberContactId?: number;
   activeConn?: Connection;
 }

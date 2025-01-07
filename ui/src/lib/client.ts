@@ -257,6 +257,10 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "joinGroup", groupName });
   }
 
+  async listGroups() {
+    return await this.sendChatCommand({ type: 'listGroups', });
+  }
+  
   public async disconnect() {
     console.log(`🟥 Disconnecting ...`);
     await this.ws.disconnect().catch((e) => console.error(e));

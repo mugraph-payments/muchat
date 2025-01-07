@@ -4,6 +4,7 @@ import {
   CRApiChat,
   CRApiChats,
   CRContactsList,
+  CRGroupsList,
   CRNewChatItems,
   CRUserContactLink,
   CRUsersList,
@@ -28,6 +29,7 @@ type useSimplexProps = {
   onContactsList?: (data: CRContactsList) => void;
   onChats?: (data: CRApiChats) => void;
   onChat?: (data: CRApiChat) => void;
+  onGroups?: (data: CRGroupsList) => void;
 };
 
 export function useSimplexCli({ ...callbacks }: useSimplexProps) {
@@ -68,6 +70,10 @@ export function useSimplexCli({ ...callbacks }: useSimplexProps) {
           callbacks.onChat?.(data.resp);
           break;
         }
+        case "groupsList": {
+          callbacks.onGroups?.(data.resp);
+          break;
+        }
         default: {
           break;
         }
@@ -87,6 +93,7 @@ export function useSimplexCli({ ...callbacks }: useSimplexProps) {
       client.apiListUsers(),
       client.apiSetAutoAccept(),
       client.apiGetActiveUser(),
+      client.listGroups(),
     ]);
   }, [serverResponseReducer]);
 
