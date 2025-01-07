@@ -32,8 +32,10 @@ export function ContactContextMenu({
         <div>{children}</div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64">
-        {items.map(({ label, callback }) => (
-          <ContextMenuItem onClick={callback}>{label}</ContextMenuItem>
+        {items.map(({ label, callback }, index) => (
+          <ContextMenuItem key={index} onClick={callback}>
+            {label}
+          </ContextMenuItem>
         ))}
       </ContextMenuContent>
     </ContextMenu>
@@ -138,10 +140,30 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
         .catch(() => setLoading(false));
     };
 
+    const onDelete = () => {
+      if (!group) return;
+      setLoading(true);
+      client.current
+        ?.deleteGroup(group.groupId)
+        .then(async (corrId) => {
+          const data = await client.current?.waitCommandResponse(corrId);
+          if (data?.type === "chatCmdError") {
+            toastError(data);
+          } else {
+            toast(`Left ${group.localDisplayName}`);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    };
+
     return (
       <ContactContextMenu
         key={contactId}
-        items={[{ label: "Leave", callback: onLeave }]}
+        items={[
+          { label: "Leave", callback: onLeave },
+          { label: "Delete", callback: onDelete },
+        ]}
       >
         <Button
           className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${

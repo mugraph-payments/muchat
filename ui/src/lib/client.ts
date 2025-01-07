@@ -265,6 +265,10 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "listGroups" });
   }
 
+  async deleteGroup(groupId: number) {
+    return await this.sendChatCommand({ type: "apiDeleteGroup", groupId });
+  }
+
   public async disconnect() {
     console.log(`🟥 Disconnecting ...`);
     await this.ws.disconnect().catch((e) => console.error(e));
