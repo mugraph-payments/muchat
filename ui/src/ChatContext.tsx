@@ -152,7 +152,7 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
           const newChatItems = data.chat.chatItems;
           const group = data.chat.chatInfo.groupInfo;
           setDirectChats((chats) => {
-            chats.set(getChatKey({ group }), newChatItems)
+            chats.set(getChatKey({ group }), newChatItems);
             return chats;
           });
           break;
