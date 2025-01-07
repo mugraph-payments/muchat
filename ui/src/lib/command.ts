@@ -72,7 +72,8 @@ export type ChatCommand =
   | CancelFile
   | FileStatus
   | ListContacts
-  | JoinGroup;
+  | JoinGroup
+  | ListGroups;
 
 // not included commands (they are not needed for Websocket clients, and can still be sent as strings):
 // APIActivateChat
@@ -174,7 +175,8 @@ type ChatCommandTag =
   | "cancelFile"
   | "fileStatus"
   | "listContacts"
-  | "joinGroup";
+  | "joinGroup"
+  | "listGroups";
 
 interface IChatCommand {
   type: ChatCommandTag;
@@ -590,6 +592,10 @@ export interface JoinGroup extends IChatCommand {
   groupName: string;
 }
 
+export interface ListGroups extends IChatCommand {
+  type: "listGroups";
+}
+
 interface NewUser {
   profile?: Profile;
   sameServers: boolean;
@@ -762,6 +768,7 @@ export const commands: Record<ChatCommand["type"], string> = {
   fileStatus: "/fstatus",
   listContacts: "/contacts",
   joinGroup: "/join",
+  listGroups: "/groups",
 };
 
 export function cmdString(cmd: ChatCommand): string {
@@ -916,6 +923,8 @@ export function cmdString(cmd: ChatCommand): string {
       return `${baseCommand}`; /*${cmd.userId}*/
     case "joinGroup":
       return `${baseCommand} '${cmd.groupName}'`;
+    case "listGroups":
+      return `${baseCommand}`;
   }
 }
 
