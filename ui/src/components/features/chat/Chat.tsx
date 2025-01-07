@@ -16,30 +16,54 @@ const Chat = () => {
     client,
     activeUser,
     contacts,
+    groups,
     isConnected,
     directChats,
     selectedChatId,
   } = useChatContext();
   const selectedChat = useMemo(
     () =>
-      selectedChatId === -1 ? [] : (directChats.get(selectedChatId) ?? []),
+      selectedChatId === "" ? [] : (directChats.get(selectedChatId) ?? []),
     [selectedChatId, directChats],
   );
-  const selectedContact = useMemo(
-    () => (selectedChatId === -1 ? null : contacts.get(selectedChatId)),
-    [selectedChatId, contacts],
+  const isGroup = useMemo(
+    () => selectedChatId.startsWith(ChatType.Group),
+    [selectedChatId],
   );
+
+  const selectedContact = useMemo(() => {
+    const contactId = parseInt(selectedChatId.substring(1));
+    return contacts.get(contactId);
+  }, [contacts, selectedChatId]);
+  const selectedGroup = useMemo(() => {
+    const contactId = parseInt(selectedChatId.substring(1));
+    return groups.get(contactId);
+  }, [groups, selectedChatId]);
+
+  const contactId =
+    (isGroup ? selectedGroup?.groupInfo.groupId : selectedContact?.contactId) ??
+    -1;
+  const contactName = isGroup
+    ? selectedGroup?.groupInfo.localDisplayName
+    : selectedContact?.localDisplayName;
+  const contactAvatarUrl = isGroup
+    ? selectedGroup?.groupInfo.groupProfile.image
+    : selectedContact?.profile.image;
 
   const handleSendMessage = async (message: string) => {
     if (message.trim() !== "") {
-      await client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
-        {
-          msgContent: {
-            type: "text",
-            text: message,
+      await client.current?.apiSendMessages(
+        isGroup ? ChatType.Group : ChatType.Direct,
+        contactId,
+        [
+          {
+            msgContent: {
+              type: "text",
+              text: message,
+            },
           },
-        },
-      ]);
+        ],
+      );
       toast("Your message has been successfully sent");
     }
   };
@@ -88,9 +112,6 @@ const Chat = () => {
     });
   };
 
-  const contactName = selectedContact?.localDisplayName;
-  const contactAvatar = selectedContact?.profile.image;
-
   return (
     <div className={`w-full h-full flex flex-col gap-2 overflow-hidden`}>
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2 shrink-0">
@@ -101,7 +122,7 @@ const Chat = () => {
         <div className="flex gap-2 items-center">
           <Avatar className="h-8 w-8 shrink-0">
             <AvatarImage
-              src={contactAvatar}
+              src={contactAvatarUrl}
               alt={selectedContact?.localDisplayName}
             />
             <AvatarFallback>
@@ -126,7 +147,7 @@ const Chat = () => {
           id="messages"
           className={`overflow-y-auto overflow-x-hidden p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
         >
-          {selectedChatId === -1
+          {selectedChatId === ""
             ? null
             : DirectChat(selectedChat, selectedContact ?? null)}
         </div>

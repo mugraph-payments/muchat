@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/ContextMenu";
 import { Contact, GroupInfo } from "@/lib/response";
 import { AddContact } from "./AddContact";
+import { getChatKey } from "@/ChatContext";
 
 type ContactContextMenuProps = {
   children: React.ReactNode;
@@ -48,7 +49,8 @@ export function ContactCard({ contact }: { contact: Contact }) {
     } = useChatContext();
     const contactId = contact ? contact.contactId : -1;
     const displayName = contact ? contact.localDisplayName : "No display name";
-    const message = directChats.get(contactId)?.at(-1);
+    const chatKey = getChatKey({ contact });
+    const message = directChats.get(getChatKey({ contact }))?.at(-1);
 
     const lastMessage =
       message?.content.type === "sndMsgContent" &&
@@ -69,12 +71,12 @@ export function ContactCard({ contact }: { contact: Contact }) {
       <ContactContextMenu key={contactId} onDelete={onDelete}>
         <Button
           className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
-            selectedChatId == contactId
+            selectedChatId == chatKey
               ? "bg-theme-text text-background"
               : "bg-muted text-muted-foreground"
           }`}
           onClick={() => {
-            setSelectedChatId(contactId);
+            setSelectedChatId(chatKey);
           }}
         >
           <div className="flex items-center gap-3 w-full">
@@ -98,14 +100,15 @@ export function ContactCard({ contact }: { contact: Contact }) {
 
 export function GroupContactCard({ group }: { group: GroupInfo }) {
   {
-    const { setSelectedChatId, selectedChatId } = useChatContext();
+    const { directChats, setSelectedChatId, selectedChatId } = useChatContext();
     const contactId = group ? group.groupId : -1;
+    const chatKey = getChatKey({ group });
     const displayName = group ? group.localDisplayName : "No display name";
-    // const message = directChats.get(contactId)?.at(-1);
+    const message = directChats.get(chatKey)?.at(-1);
 
-    // const lastMessage =
-    //   message?.content.type === "sndMsgContent" &&
-    //   message.content.msgContent?.text;
+    const lastMessage =
+      message?.content.type === "sndMsgContent" &&
+      message.content.msgContent?.text;
 
     const onDelete = () => {};
 
@@ -113,12 +116,12 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
       <ContactContextMenu key={contactId} onDelete={onDelete}>
         <Button
           className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
-            selectedChatId == contactId
+            selectedChatId == chatKey
               ? "bg-theme-text text-background"
               : "bg-muted text-muted-foreground"
           }`}
           onClick={() => {
-            setSelectedChatId(contactId);
+            setSelectedChatId(chatKey);
           }}
         >
           <div className="flex items-center gap-3 w-full">
@@ -129,9 +132,7 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
             </Avatar>
             <div className="flex flex-col items-start overflow-hidden">
               <span className="font-medium truncate">{displayName}</span>
-              <p className="text-sm text-theme-subtext0">
-                {/* {lastMessage ?? "teste"} */}
-              </p>
+              <p className="text-sm text-theme-subtext0">{lastMessage ?? ""}</p>
             </div>
           </div>
         </Button>
