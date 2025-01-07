@@ -131,9 +131,9 @@ const ChatProvider = ({ children }: { children: ReactNode }) => {
       );
     },
     onGroups: ({ groups }) => {
-      const newGroups = new Map();
+      const newGroups = new Map<number, Group>();
       groups.forEach(([groupInfo]) => {
-        newGroups.set(groupInfo.groupId, groupInfo);
+        newGroups.set(groupInfo.groupId, { groupInfo, members: [] });
       });
       setGroups(newGroups);
     },
