@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { commands as commandList } from "@/lib/command";
 
 type MessageInputProps = {
+  showCommandSuggestions?: boolean;
   onChange?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onSubmit?: (value: string) => Promise<void>;
 };
@@ -43,6 +44,7 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
     const value = event.target.value;
     setMessage(value);
 
+    if (!props.showCommandSuggestions) return;
     // Handle command input
     if (value.endsWith("/")) {
       setCommandAutoCompleteEnabled(true);

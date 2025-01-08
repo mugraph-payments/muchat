@@ -127,7 +127,7 @@ const CommandConsole = () => {
         </div>
       </div>
 
-      <MessageInput onSubmit={handleCommandSubmit} />
+      <MessageInput onSubmit={handleCommandSubmit} showCommandSuggestions />
     </div>
   );
 };
