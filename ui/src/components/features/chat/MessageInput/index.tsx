@@ -103,6 +103,8 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
                 }
               }}
               tabIndex={-1}
+              role="option"
+              aria-selected={index === focusedSuggestionIndex}
             >
               {command}
             </div>

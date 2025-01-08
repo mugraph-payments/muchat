@@ -29,11 +29,21 @@
   bottom: 100%;
   @apply bg-theme-surface1;
   @apply flex flex-col gap-0;
-  @apply w-full max-h-44 overflow-y-auto p-2;
+  @apply w-full max-h-44 overflow-y-auto py-2;
 }
 
 .suggestion {
   @apply p-3;
-  @apply hover:bg-theme-surface0;
+  cursor: pointer;
   border-bottom: 1px solid hsl(var(--border));
+
+  &:focus {
+    outline: 1px solid hsl(var(--ring));
+    outline-offset: -1px;
+    @apply bg-theme-surface0;
+  }
+
+  &:hover {
+    @apply bg-theme-surface0;
+  }
 }
