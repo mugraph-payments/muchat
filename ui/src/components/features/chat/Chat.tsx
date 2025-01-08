@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import useChatContext from "@/useChatContext";
 import { ChatItem, Contact } from "@/lib/response";
 import { ChatType } from "@/lib/command";
@@ -40,83 +40,102 @@ const Chat = () => {
     return groups.get(contactId);
   }, [groups, selectedChatId]);
 
-  const contactId =
-    (isGroup ? selectedGroup?.groupInfo.groupId : selectedContact?.contactId) ??
-    -1;
-  const contactName = isGroup
-    ? selectedGroup?.groupInfo.localDisplayName
-    : selectedContact?.localDisplayName;
-  const contactAvatarUrl = isGroup
-    ? selectedGroup?.groupInfo.groupProfile.image
-    : selectedContact?.profile.image;
+  const contactId = useMemo(
+    () =>
+      (isGroup
+        ? selectedGroup?.groupInfo.groupId
+        : selectedContact?.contactId) ?? -1,
+    [isGroup, selectedGroup, selectedContact],
+  );
 
-  const handleSendMessage = async (message: string) => {
-    if (message.trim() !== "") {
-      await client.current?.apiSendMessages(
-        isGroup ? ChatType.Group : ChatType.Direct,
-        contactId,
-        [
-          {
-            msgContent: {
-              type: "text",
-              text: message,
+  const contactName = useMemo(
+    () =>
+      isGroup
+        ? selectedGroup?.groupInfo.localDisplayName
+        : selectedContact?.localDisplayName,
+    [isGroup, selectedGroup, selectedContact],
+  );
+  const contactAvatarUrl = useMemo(
+    () =>
+      isGroup
+        ? selectedGroup?.groupInfo.groupProfile.image
+        : selectedContact?.profile.image,
+    [isGroup, selectedContact, selectedGroup],
+  );
+
+  const handleSendMessage = useCallback(
+    async (message: string) => {
+      if (message.trim() !== "") {
+        await client.current?.apiSendMessages(
+          isGroup ? ChatType.Group : ChatType.Direct,
+          contactId,
+          [
+            {
+              msgContent: {
+                type: "text",
+                text: message,
+              },
             },
-          },
-        ],
-      );
-      toast("Your message has been successfully sent");
-    }
-  };
-
-  const ChatMessages = (messages: ChatItem[], contact?: Contact) => {
-    return messages.map((msg, index) => {
-      switch (msg.content.type) {
-        case "sndMsgContent":
-          return (
-            <MessageBubble
-              heading={activeUser?.localDisplayName ?? "No Display Name"}
-              key={index}
-            >
-              {msg.content.msgContent.text}
-            </MessageBubble>
-          );
-        case "rcvMsgContent": {
-          let displayName = "No Display Name";
-          switch (msg.chatDir.type) {
-            case "groupRcv":
-              displayName = msg.chatDir.groupMember.localDisplayName;
-              break;
-            case "directRcv":
-              displayName = contact ? contact?.localDisplayName : displayName;
-              break;
-          }
-          return (
-            <MessageBubble heading={displayName} side="right" key={index}>
-              {msg.content.msgContent.text}
-            </MessageBubble>
-          );
-        }
-        case "rcvGroupInvitation":
-          return (
-            <GroupInvitationBubble
-              key={index}
-              groupInvitation={msg.content.groupInvitation}
-              side="right"
-            />
-          );
-        default:
-          return (
-            <MessageBubble
-              heading={`Unkown Message: ${msg.content.type}`}
-              side={msg.content.type.startsWith("snd") ? "left" : "right"}
-              key={index}
-            >
-              {JSON.stringify(msg.content)}
-            </MessageBubble>
-          );
+          ],
+        );
+        toast("Your message has been successfully sent");
       }
-    });
-  };
+    },
+    [client, contactId, isGroup],
+  );
+
+  const ChatMessages = useCallback(
+    (messages: ChatItem[], contact?: Contact) => {
+      return messages.map((msg, index) => {
+        switch (msg.content.type) {
+          case "sndMsgContent":
+            return (
+              <MessageBubble
+                heading={activeUser?.localDisplayName ?? "No Display Name"}
+                key={index}
+              >
+                {msg.content.msgContent.text}
+              </MessageBubble>
+            );
+          case "rcvMsgContent": {
+            let displayName = "No Display Name";
+            switch (msg.chatDir.type) {
+              case "groupRcv":
+                displayName = msg.chatDir.groupMember.localDisplayName;
+                break;
+              case "directRcv":
+                displayName = contact ? contact?.localDisplayName : displayName;
+                break;
+            }
+            return (
+              <MessageBubble heading={displayName} side="right" key={index}>
+                {msg.content.msgContent.text}
+              </MessageBubble>
+            );
+          }
+          case "rcvGroupInvitation":
+            return (
+              <GroupInvitationBubble
+                key={index}
+                groupInvitation={msg.content.groupInvitation}
+                side="right"
+              />
+            );
+          default:
+            return (
+              <MessageBubble
+                heading={`Unkown Message: ${msg.content.type}`}
+                side={msg.content.type.startsWith("snd") ? "left" : "right"}
+                key={index}
+              >
+                {JSON.stringify(msg.content)}
+              </MessageBubble>
+            );
+        }
+      });
+    },
+    [activeUser],
+  );
 
   return (
     <div className={`w-full h-full flex flex-col gap-2 overflow-hidden`}>
