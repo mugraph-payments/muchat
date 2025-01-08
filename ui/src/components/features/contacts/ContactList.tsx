@@ -10,7 +10,7 @@ import {
 import { Contact, GroupInfo } from "@/lib/response";
 import { AddContact } from "./AddContact";
 import { getChatKey } from "@/ChatContext";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toastError } from "@/lib/error";
 import { toast } from "sonner";
 
@@ -59,10 +59,7 @@ export function ContactCard({ contact }: { contact: Contact }) {
     const displayName = contact ? contact.localDisplayName : "No display name";
     const chatKey = getChatKey({ contact });
     const message = directChats.get(getChatKey({ contact }))?.at(-1);
-
-    const lastMessage =
-      message?.content.type === "sndMsgContent" &&
-      message.content.msgContent?.text;
+    const lastMessage = useMemo(() => message?.meta.itemText, [message]);
 
     const onDelete = () => {
       if (!contact) return;
@@ -98,9 +95,7 @@ export function ContactCard({ contact }: { contact: Contact }) {
             </Avatar>
             <div className="flex flex-col items-start overflow-hidden">
               <span className="font-medium truncate">{displayName}</span>
-              <p className="text-sm text-theme-subtext0">
-                {lastMessage ?? "teste"}
-              </p>
+              <p className="text-sm text-theme-subtext0">{lastMessage}</p>
             </div>
           </div>
         </Button>
@@ -118,10 +113,7 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
     const chatKey = getChatKey({ group });
     const displayName = group ? group.localDisplayName : "No display name";
     const message = directChats.get(chatKey)?.at(-1);
-
-    const lastMessage =
-      message?.content.type === "sndMsgContent" &&
-      message.content.msgContent?.text;
+    const lastMessage = useMemo(() => message?.meta.itemText, [message]);
 
     const onLeave = () => {
       if (!group) return;
@@ -150,7 +142,7 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
           if (data?.type === "chatCmdError") {
             toastError(data);
           } else {
-            toast(`Left ${group.localDisplayName}`);
+            toast(`Deleted ${group.localDisplayName}`);
           }
           setLoading(false);
         })
