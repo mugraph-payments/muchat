@@ -1,6 +1,6 @@
 import useChatContext from "@/useChatContext";
 import { Button } from "@/components/ui/Button";
-import { Avatar, AvatarFallback } from "../../ui/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../ui/Avatar";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -59,6 +59,10 @@ export function ContactCard({ contact }: { contact: Contact }) {
     const displayName = contact ? contact.localDisplayName : "No display name";
     const chatKey = getChatKey({ contact });
     const message = directChats.get(getChatKey({ contact }))?.at(-1);
+    const avatarUrl = useMemo(
+      () => (contact ? contact.profile.image : ""),
+      [contact],
+    );
     const lastMessage = useMemo(() => message?.meta.itemText, [message]);
 
     const onDelete = () => {
@@ -89,6 +93,7 @@ export function ContactCard({ contact }: { contact: Contact }) {
         >
           <div className="flex items-center gap-3 w-full">
             <Avatar className="h-8 w-8 shrink-0">
+              <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback>
                 {displayName.at(0)?.toUpperCase()}
               </AvatarFallback>
@@ -112,6 +117,10 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
     const contactId = group ? group.groupId : -1;
     const chatKey = getChatKey({ group });
     const displayName = group ? group.localDisplayName : "No display name";
+    const avatarUrl = useMemo(
+      () => (group ? group.groupProfile.image : ""),
+      [group],
+    );
     const message = directChats.get(chatKey)?.at(-1);
     const lastMessage = useMemo(() => message?.meta.itemText, [message]);
 
@@ -170,6 +179,7 @@ export function GroupContactCard({ group }: { group: GroupInfo }) {
         >
           <div className="flex items-center gap-3 w-full">
             <Avatar className="h-8 w-8 shrink-0">
+              <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback>
                 {displayName.at(0)?.toUpperCase()}
               </AvatarFallback>
