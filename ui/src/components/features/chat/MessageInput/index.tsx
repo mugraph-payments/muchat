@@ -22,20 +22,71 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
   const [commandAutoCompleteEnabled, setCommandAutoCompleteEnabled] =
     useState(false);
   const [focusedSuggestionIndex, setFocusedSuggestionIndex] = useState(-1);
+  const [history, setHistory] = useState<Array<string>>([]);
+  const [, setHistoryIndex] = useState(-1);
 
   const handleKeyPress: React.KeyboardEventHandler<HTMLInputElement> = (
     event,
   ) => {
-    if (event.key === "Enter") {
-      props.onSubmit?.(message).then(() => setMessage(""));
-      setCommandAutoCompleteEnabled(false);
-    } else if (event.key === "Tab") {
-      event.preventDefault();
-      if (commandAutoCompleteEnabled && activeCommandSuggestions.length > 0) {
-        const nextIndex =
-          focusedSuggestionIndex === -1 ? 0 : focusedSuggestionIndex;
-        setFocusedSuggestionIndex(nextIndex);
-        suggestionsRef.current[nextIndex]?.focus();
+    switch (event.key) {
+      case "Enter": {
+        props.onSubmit?.(message).then(() => {
+          if (message) {
+            setHistory((h) => {
+              const newHistory = [message, ...h];
+              setMessage("");
+              return newHistory;
+            });
+          }
+        });
+        setCommandAutoCompleteEnabled(false);
+        break;
+      }
+      case "Tab": {
+        event.preventDefault();
+        if (commandAutoCompleteEnabled && activeCommandSuggestions.length > 0) {
+          const nextIndex =
+            focusedSuggestionIndex === -1 ? 0 : focusedSuggestionIndex;
+          setFocusedSuggestionIndex(nextIndex);
+          suggestionsRef.current[nextIndex]?.focus();
+        }
+        break;
+      }
+      case "ArrowUp": {
+        if (commandAutoCompleteEnabled && activeCommandSuggestions.length > 0) {
+          const nextIndex = Math.max(focusedSuggestionIndex - 1, -1);
+          setFocusedSuggestionIndex(nextIndex);
+          suggestionsRef.current[nextIndex]?.focus();
+          return;
+        }
+
+        setHistoryIndex((i) => {
+          const newIndex = Math.min(i + 1, history.length - 1);
+          setMessage(history[newIndex]);
+          return newIndex;
+        });
+        break;
+      }
+      case "ArrowDown": {
+        if (commandAutoCompleteEnabled && activeCommandSuggestions.length > 0) {
+          const nextIndex = Math.min(
+            focusedSuggestionIndex + 1,
+            activeCommandSuggestions.length - 1,
+          );
+          setFocusedSuggestionIndex(nextIndex);
+          suggestionsRef.current[nextIndex]?.focus();
+          return;
+        }
+        setHistoryIndex((i) => {
+          const newIndex = Math.max(i - 1, -1);
+          if (newIndex === -1) {
+            setMessage("");
+          } else {
+            setMessage(history[newIndex]);
+          }
+          return newIndex;
+        });
+        break;
       }
     }
   };
