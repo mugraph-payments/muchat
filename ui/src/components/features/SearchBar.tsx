@@ -32,12 +32,7 @@ export function SearchBar() {
 
     const matches = (await invoke("match_array", {
       pattern: query,
-      paths: [
-        "Sam Winchester",
-        "Dean Winchester",
-        "Miguel Oliveira",
-        "Caina Oliveira",
-      ],
+      paths: ["Miguel Oliveira"],
     })) as string[];
 
     setFilteredContacts(matches);
