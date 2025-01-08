@@ -86,7 +86,7 @@ const Chat = () => {
 
   const ChatMessages = useCallback(
     (messages: ChatItem[], contact?: Contact) => {
-      return messages.map((msg, index) => {
+      return [...messages].reverse().map((msg, index) => {
         switch (msg.content.type) {
           case "sndMsgContent":
             return (
@@ -170,7 +170,7 @@ const Chat = () => {
       <div className="flex flex-col flex-1 p-4 gap-2 overflow-hidden">
         <div
           id="messages"
-          className={`overflow-y-auto overflow-x-hidden p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
+          className="overflow-y-auto overflow-x-hidden p-2 flex flex-col-reverse h-full max-h-full gap-2 flex-grow border-muted border rounded"
         >
           {selectedChatId === ""
             ? null

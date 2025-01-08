@@ -48,7 +48,7 @@ const CommandConsole = () => {
   useEffect(() => {
     if (!consoleBoxRef.current) return;
     virtualizer.scrollToIndex(consoleMessages.length - 1, { align: "end" });
-  }, [consoleMessages.length, virtualizer]);
+  }, [consoleMessages.length, virtualizer, isActive]);
 
   const handleCommandSubmit = useCallback(
     async (input: string) => {
