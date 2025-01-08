@@ -1,24 +1,30 @@
 import useChatContext from "@/useChatContext";
 import { Button } from "@/components/ui/Button";
-import { Avatar, AvatarFallback } from "../../ui/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../ui/Avatar";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
-import { Contact } from "@/lib/response";
+import { Contact, GroupInfo } from "@/lib/response";
 import { AddContact } from "./AddContact";
+import { getChatKey } from "@/ChatContext";
+import { useMemo, useState } from "react";
+import { toastError } from "@/lib/error";
+import { toast } from "sonner";
 
 type ContactContextMenuProps = {
   children: React.ReactNode;
-  contact: Contact;
-  onDelete: () => void;
+  items: Array<{
+    label: string;
+    callback: () => void;
+  }>;
 };
 
 export function ContactContextMenu({
   children,
-  onDelete,
+  items,
 }: ContactContextMenuProps) {
   return (
     <ContextMenu>
@@ -26,78 +32,184 @@ export function ContactContextMenu({
         <div>{children}</div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64">
-        <ContextMenuItem inset onClick={onDelete}>
-          Delete
-        </ContextMenuItem>
+        {items.map(({ label, callback }, index) => (
+          <ContextMenuItem key={index} onClick={callback}>
+            {label}
+          </ContextMenuItem>
+        ))}
       </ContextMenuContent>
     </ContextMenu>
   );
 }
 
-function ContactListv2() {
-  const {
-    client,
-    contacts,
-    setSelectedChatId,
-    selectedChatId,
-    directChats,
-    activeUser,
-  } = useChatContext();
+interface ContactListProps {
+  showGroups?: boolean;
+}
+
+export function ContactCard({ contact }: { contact: Contact }) {
+  {
+    const {
+      client,
+      setSelectedChatId,
+      selectedChatId,
+      directChats,
+      activeUser,
+    } = useChatContext();
+    const contactId = contact ? contact.contactId : -1;
+    const displayName = contact ? contact.localDisplayName : "No display name";
+    const chatKey = getChatKey({ contact });
+    const message = directChats.get(getChatKey({ contact }))?.at(-1);
+    const avatarUrl = useMemo(
+      () => (contact ? contact.profile.image : ""),
+      [contact],
+    );
+    const lastMessage = useMemo(() => message?.meta.itemText, [message]);
+
+    const onDelete = () => {
+      if (!contact) return;
+      client.current
+        ?.apiDeleteContact(contact.contactId)
+        .then(async (corrId: string) => {
+          // TODO: display feedback
+          await client.current?.waitCommandResponse(corrId);
+          client.current?.apiListContacts(`${activeUser?.userId ?? 0}`);
+        });
+    };
+
+    return (
+      <ContactContextMenu
+        key={contactId}
+        items={[{ label: "Delete", callback: onDelete }]}
+      >
+        <Button
+          className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
+            selectedChatId == chatKey
+              ? "bg-theme-text text-background"
+              : "bg-muted text-muted-foreground"
+          }`}
+          onClick={() => {
+            setSelectedChatId(chatKey);
+          }}
+        >
+          <div className="flex items-center gap-3 w-full">
+            <Avatar className="h-8 w-8 shrink-0">
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback>
+                {displayName.at(0)?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col items-start overflow-hidden">
+              <span className="font-medium truncate">{displayName}</span>
+              <p className="text-sm text-theme-subtext0">{lastMessage}</p>
+            </div>
+          </div>
+        </Button>
+      </ContactContextMenu>
+    );
+  }
+}
+
+export function GroupContactCard({ group }: { group: GroupInfo }) {
+  {
+    const { client, directChats, setSelectedChatId, selectedChatId } =
+      useChatContext();
+    const [isLoading, setLoading] = useState(false);
+    const contactId = group ? group.groupId : -1;
+    const chatKey = getChatKey({ group });
+    const displayName = group ? group.localDisplayName : "No display name";
+    const avatarUrl = useMemo(
+      () => (group ? group.groupProfile.image : ""),
+      [group],
+    );
+    const message = directChats.get(chatKey)?.at(-1);
+    const lastMessage = useMemo(() => message?.meta.itemText, [message]);
+
+    const onLeave = () => {
+      if (!group) return;
+      setLoading(true);
+      client.current
+        ?.leaveGroup(group.groupId)
+        .then(async (corrId) => {
+          const data = await client.current?.waitCommandResponse(corrId);
+          if (data?.type === "chatCmdError") {
+            toastError(data);
+          } else {
+            toast(`Left ${group.localDisplayName}`);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    };
+
+    const onDelete = () => {
+      if (!group) return;
+      setLoading(true);
+      client.current
+        ?.deleteGroup(group.groupId)
+        .then(async (corrId) => {
+          const data = await client.current?.waitCommandResponse(corrId);
+          if (data?.type === "chatCmdError") {
+            toastError(data);
+          } else {
+            toast(`Deleted ${group.localDisplayName}`);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    };
+
+    return (
+      <ContactContextMenu
+        key={contactId}
+        items={[
+          { label: "Leave", callback: onLeave },
+          { label: "Delete", callback: onDelete },
+        ]}
+      >
+        <Button
+          className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
+            selectedChatId == chatKey
+              ? "bg-theme-text text-background"
+              : "bg-muted text-muted-foreground"
+          }`}
+          onClick={() => {
+            setSelectedChatId(chatKey);
+          }}
+          loading={isLoading}
+        >
+          <div className="flex items-center gap-3 w-full">
+            <Avatar className="h-8 w-8 shrink-0">
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback>
+                {displayName.at(0)?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col items-start overflow-hidden">
+              <span className="font-medium truncate">{displayName}</span>
+              <p className="text-sm text-theme-subtext0">{lastMessage ?? ""}</p>
+            </div>
+          </div>
+        </Button>
+      </ContactContextMenu>
+    );
+  }
+}
+
+function ContactList({ showGroups = true }: ContactListProps) {
+  const { contacts, groups } = useChatContext();
 
   return (
     <div className="flex flex-col gap-2">
-      {[...contacts].map(([cId, contact], index) => {
-        const message = directChats.get(cId)?.at(-1);
-
-        const lastMessage =
-          message?.content.type === "sndMsgContent" &&
-          message.content.msgContent?.text;
-
-        const onDelete = () => {
-          if (!contact) return;
-          client.current
-            ?.apiDeleteContact(contact.contactId)
-            .then(async (corrId: string) => {
-              // TODO: display feedback
-              await client.current?.waitCommandResponse(corrId);
-              client.current?.apiListContacts(`${activeUser?.userId ?? 0}`);
-            });
-        };
-
-        return (
-          <ContactContextMenu key={index} onDelete={onDelete} contact={contact}>
-            <Button
-              className={`w-full h-full flex items-center justify-between gap-3 px-3 py-2 rounded ${
-                selectedChatId == cId
-                  ? "bg-theme-text text-background"
-                  : "bg-muted text-muted-foreground"
-              }`}
-              onClick={() => {
-                setSelectedChatId(cId);
-              }}
-            >
-              <div className="flex items-center gap-3 w-full">
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback>
-                    {contact.localDisplayName.at(0)?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start overflow-hidden">
-                  <span className="font-medium truncate">
-                    {contact.localDisplayName}
-                  </span>
-                  <p className="text-sm text-theme-subtext0">
-                    {lastMessage ?? "teste"}
-                  </p>
-                </div>
-              </div>
-            </Button>
-          </ContactContextMenu>
-        );
-      })}
+      {[...contacts].map(([cId, contact]) => (
+        <ContactCard contact={contact} key={cId} />
+      ))}
+      {showGroups &&
+        [...groups].map(([cId, group]) => (
+          <GroupContactCard group={group.groupInfo} key={cId} />
+        ))}
       <AddContact />
     </div>
   );
 }
 
-export default ContactListv2;
+export default ContactList;

@@ -9,72 +9,117 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge";
 import { MessageBubble } from "./MessageBubble";
 import { SidebarTrigger } from "@/components/ui/Sidebar";
+import { GroupInvitationBubble } from "./GroupInvitationBubble";
 
 const Chat = () => {
   const {
     client,
     activeUser,
     contacts,
+    groups,
     isConnected,
     directChats,
     selectedChatId,
   } = useChatContext();
   const selectedChat = useMemo(
     () =>
-      selectedChatId === -1 ? [] : (directChats.get(selectedChatId) ?? []),
+      selectedChatId === "" ? [] : (directChats.get(selectedChatId) ?? []),
     [selectedChatId, directChats],
   );
-  const selectedContact = useMemo(
-    () => (selectedChatId === -1 ? null : contacts.get(selectedChatId)),
-    [selectedChatId, contacts],
+  const isGroup = useMemo(
+    () => selectedChatId.startsWith(ChatType.Group),
+    [selectedChatId],
   );
+
+  const selectedContact = useMemo(() => {
+    const contactId = parseInt(selectedChatId.substring(1));
+    return contacts.get(contactId);
+  }, [contacts, selectedChatId]);
+  const selectedGroup = useMemo(() => {
+    const contactId = parseInt(selectedChatId.substring(1));
+    return groups.get(contactId);
+  }, [groups, selectedChatId]);
+
+  const contactId =
+    (isGroup ? selectedGroup?.groupInfo.groupId : selectedContact?.contactId) ??
+    -1;
+  const contactName = isGroup
+    ? selectedGroup?.groupInfo.localDisplayName
+    : selectedContact?.localDisplayName;
+  const contactAvatarUrl = isGroup
+    ? selectedGroup?.groupInfo.groupProfile.image
+    : selectedContact?.profile.image;
 
   const handleSendMessage = async (message: string) => {
     if (message.trim() !== "") {
-      await client.current?.apiSendMessages(ChatType.Direct, selectedChatId, [
-        {
-          msgContent: {
-            type: "text",
-            text: message,
+      await client.current?.apiSendMessages(
+        isGroup ? ChatType.Group : ChatType.Direct,
+        contactId,
+        [
+          {
+            msgContent: {
+              type: "text",
+              text: message,
+            },
           },
-        },
-      ]);
+        ],
+      );
       toast("Your message has been successfully sent");
     }
   };
 
-  const DirectChat = (messages: ChatItem[], contact: Contact | null) => {
+  const ChatMessages = (messages: ChatItem[], contact?: Contact) => {
     return messages.map((msg, index) => {
-      return msg.content.type === "sndMsgContent" ||
-        msg.content.type === "rcvMsgContent" ? (
-        <div key={index}>
-          {msg.content.type === "rcvMsgContent" && (
-            <MessageBubble
-              heading={contact?.localDisplayName ?? "No Display Name"}
-              side="right"
-              key={index}
-            >
-              {msg.content.msgContent.text}
-            </MessageBubble>
-          )}
-          {msg.content.type === "sndMsgContent" && (
+      switch (msg.content.type) {
+        case "sndMsgContent":
+          return (
             <MessageBubble
               heading={activeUser?.localDisplayName ?? "No Display Name"}
               key={index}
             >
               {msg.content.msgContent.text}
             </MessageBubble>
-          )}
-        </div>
-      ) : null;
+          );
+        case "rcvMsgContent": {
+          let displayName = "No Display Name";
+          switch (msg.chatDir.type) {
+            case "groupRcv":
+              displayName = msg.chatDir.groupMember.localDisplayName;
+              break;
+            case "directRcv":
+              displayName = contact ? contact?.localDisplayName : displayName;
+              break;
+          }
+          return (
+            <MessageBubble heading={displayName} side="right" key={index}>
+              {msg.content.msgContent.text}
+            </MessageBubble>
+          );
+        }
+        case "rcvGroupInvitation":
+          return (
+            <GroupInvitationBubble
+              key={index}
+              groupInvitation={msg.content.groupInvitation}
+              side="right"
+            />
+          );
+        default:
+          return (
+            <MessageBubble
+              heading={`Unkown Message: ${msg.content.type}`}
+              side={msg.content.type.startsWith("snd") ? "left" : "right"}
+              key={index}
+            >
+              {JSON.stringify(msg.content)}
+            </MessageBubble>
+          );
+      }
     });
   };
 
-  const contactName = selectedContact?.localDisplayName;
-  const contactAvatar = selectedContact?.profile.image;
-
   return (
-    <div className={`w-full h-full flex flex-col gap-2`}>
+    <div className={`w-full h-full flex flex-col gap-2 overflow-hidden`}>
       <div className="p-4 bg-theme-mantle w-full border-b-[1px] border-theme-base flex items-center gap-2 shrink-0">
         <div className="mr-4">
           <SidebarTrigger />
@@ -83,7 +128,7 @@ const Chat = () => {
         <div className="flex gap-2 items-center">
           <Avatar className="h-8 w-8 shrink-0">
             <AvatarImage
-              src={contactAvatar}
+              src={contactAvatarUrl}
               alt={selectedContact?.localDisplayName}
             />
             <AvatarFallback>
@@ -106,11 +151,11 @@ const Chat = () => {
       <div className="flex flex-col flex-1 p-4 gap-2 overflow-hidden">
         <div
           id="messages"
-          className={`overflow-y-auto p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
+          className={`overflow-y-auto overflow-x-hidden p-2 flex flex-col h-full max-h-full gap-2 flex-grow border-muted border rounded`}
         >
-          {selectedChatId === -1
+          {selectedChatId === ""
             ? null
-            : DirectChat(selectedChat, selectedContact ?? null)}
+            : ChatMessages(selectedChat, selectedContact)}
         </div>
         <MessageInput onSubmit={handleSendMessage} />
       </div>

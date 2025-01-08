@@ -6,19 +6,22 @@ type MessageBubbleProps = {
   className?: string;
   limitMessageLenght?: boolean;
   side?: "left" | "right";
+  key?: string | number;
 };
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   className,
   heading,
   children,
-  limitMessageLenght = true,
+  limitMessageLenght = false,
   side = "left",
+  ...props
 }) => {
   return (
     <div
+      {...props}
       className={clsx(
-        "p-2 px-4 rounded bg-theme-surface0 flex flex-col gap-1 w-fit",
+        "p-2 px-4 rounded bg-theme-surface0 flex flex-col gap-1 w-fit max-w-full break-words",
         `${side === "right" && `ml-auto`}`,
         limitMessageLenght
           ? `max-h-44 overflow-hidden line-clamp-3 text-ellipsis`
@@ -28,7 +31,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     >
       {heading && (
         <span
-          className={`text-theme-blue p-2 rounded bg-theme-surface0 flex flex-col gap-1 w-full`}
+          className={`text-theme-blue rounded bg-theme-surface0 flex flex-col gap-1 w-full`}
         >
           {heading}
         </span>

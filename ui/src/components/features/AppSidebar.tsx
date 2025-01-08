@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/Sidebar";
 import { Settings } from "lucide-react";
-import ContactListv2 from "./contacts/ContactList";
+import ContactList from "./contacts/ContactList";
 import { UserSettingsDialog } from "./user/UserSettings";
 import ActiveUserSelect from "./user/ActiveUserSelect";
 import useChatContext from "@/useChatContext";
@@ -33,7 +33,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <ContactListv2 />
+            <ContactList />
             <SearchBar />
           </SidebarGroupContent>
         </SidebarGroup>

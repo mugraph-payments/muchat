@@ -253,6 +253,22 @@ export class ChatClient {
     return await this.sendChatCommand({ type: "apiDeleteContact", contactId });
   }
 
+  async joinGroup(groupName: string) {
+    return await this.sendChatCommand({ type: "joinGroup", groupName });
+  }
+
+  async leaveGroup(groupId: number) {
+    return await this.sendChatCommand({ type: "apiLeaveGroup", groupId });
+  }
+
+  async listGroups() {
+    return await this.sendChatCommand({ type: "listGroups" });
+  }
+
+  async deleteGroup(groupId: number) {
+    return await this.sendChatCommand({ type: "apiDeleteGroup", groupId });
+  }
+
   public async disconnect() {
     console.log(`🟥 Disconnecting ...`);
     await this.ws.disconnect().catch((e) => console.error(e));
