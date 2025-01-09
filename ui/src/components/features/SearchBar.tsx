@@ -43,7 +43,7 @@ export function SearchBar() {
     const newQuery = event.target.value;
     setQuery(newQuery);
 
-    const newMatches = (await invoke("match_array", {
+    const newMatches = (await invoke("match_string", {
       pattern: newQuery,
       paths: currentContacts.map((contact) => contact.localDisplayName),
     })) as string[];
