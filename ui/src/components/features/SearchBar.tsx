@@ -8,25 +8,23 @@ import {
 } from "../ui/Dialog";
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import ContactCard from "./contacts/ContactCard";
+import ContactSuggestions from "./contacts/ContactSuggestions";
 import useChatContext from "@/useChatContext";
+import { Contact } from "@/lib/response";
 
 export function SearchBar() {
   const { contacts } = useChatContext();
-  const contactNames = useMemo(
-    () =>
-      Array.from(contacts.values()).map(
-        ({ localDisplayName }) => localDisplayName,
-      ),
+  const currentContacts = useMemo(
+    () => Array.from(contacts.values()),
     [contacts],
   );
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState<string>("");
-  const [matches, setMatches] = useState<string[]>([]);
+  const [matches, setMatches] = useState<Contact[]>([]);
   const filteredContacts = useMemo(
-    () => (query ? matches : contactNames.slice(0, 5)),
-    [query, matches, contactNames],
+    () => (query ? matches : currentContacts.slice(0, 5)),
+    [query, matches, currentContacts],
   );
 
   useEffect(() => {
@@ -47,9 +45,18 @@ export function SearchBar() {
 
     const newMatches = (await invoke("match_array", {
       pattern: newQuery,
-      paths: contactNames,
+      paths: currentContacts.map((contact) => contact.localDisplayName),
     })) as string[];
-    setMatches(newMatches);
+
+    const matchesMapped = newMatches
+      .map((match) => {
+        return currentContacts.find(
+          (contact) => contact.localDisplayName === match,
+        );
+      })
+      .filter((contact): contact is Contact => contact !== undefined);
+
+    setMatches(matchesMapped);
   }
 
   return (
@@ -71,7 +78,7 @@ export function SearchBar() {
         </DialogHeader>
         <DialogDescription>
           <p className="text-gray-400 text-sm">Recently viewed</p>
-          <ContactCard contactsList={filteredContacts} />
+          <ContactSuggestions contactsList={filteredContacts} />
         </DialogDescription>
       </DialogContent>
     </Dialog>
