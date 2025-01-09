@@ -28,7 +28,8 @@ async fn main() {
     // let stream = stream_future.await;
     // tauri::async_runtime::set(tokio::runtime::Handle::current());
     tauri::Builder::default()
-        // This is where you pass in your commands
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_websocket::init())
         .invoke_handler(tauri::generate_handler![match_array])
         .run(tauri::generate_context!())
         .expect("failed to run app");
