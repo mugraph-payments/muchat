@@ -7,7 +7,7 @@ use nucleo::{
 };
 
 #[tauri::command]
-fn match_array(pattern: String, paths: Vec<String>) -> Vec<String> {
+fn match_string(pattern: String, paths: Vec<String>) -> Vec<String> {
     if paths.is_empty() {
         return vec![];
     }
@@ -30,7 +30,7 @@ async fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_websocket::init())
-        .invoke_handler(tauri::generate_handler![match_array])
+        .invoke_handler(tauri::generate_handler![match_string])
         .run(tauri::generate_context!())
         .expect("failed to run app");
 }
