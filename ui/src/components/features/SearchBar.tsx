@@ -6,13 +6,25 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "../ui/Dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import ContactCard from "./contacts/ContactCard";
+import useChatContext from "@/useChatContext";
 
 export function SearchBar() {
+  const { contacts } = useChatContext();
+  const contactsName = useMemo(
+    () =>
+      Array.from(contacts.values()).map(
+        ({ localDisplayName }) => localDisplayName,
+      ),
+    [contacts],
+  );
+
   const [open, setOpen] = useState(false);
-  const [filteredContacts, setFilteredContacts] = useState<string[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<string[]>(
+    contactsName.slice(0, 5),
+  );
   const [query, setQuery] = useState<string>("");
 
   useEffect(() => {
@@ -32,7 +44,7 @@ export function SearchBar() {
 
     const matches = (await invoke("match_array", {
       pattern: query,
-      paths: ["Miguel Oliveira"],
+      paths: contactsName,
     })) as string[];
 
     setFilteredContacts(matches);
