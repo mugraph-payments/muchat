@@ -13,7 +13,7 @@ import useChatContext from "@/useChatContext";
 
 export function SearchBar() {
   const { contacts } = useChatContext();
-  const contactsName = useMemo(
+  const contactNames = useMemo(
     () =>
       Array.from(contacts.values()).map(
         ({ localDisplayName }) => localDisplayName,
@@ -22,10 +22,12 @@ export function SearchBar() {
   );
 
   const [open, setOpen] = useState(false);
-  const [filteredContacts, setFilteredContacts] = useState<string[]>(
-    contactsName.slice(0, 5),
-  );
   const [query, setQuery] = useState<string>("");
+  const [matches, setMatches] = useState<string[]>([]);
+  const filteredContacts = useMemo(
+    () => (query ? matches : contactNames.slice(0, 5)),
+    [query, matches, contactNames],
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -40,14 +42,14 @@ export function SearchBar() {
   }, []);
 
   async function handleFilterInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setQuery(event.target.value);
+    const newQuery = event.target.value;
+    setQuery(newQuery);
 
-    const matches = (await invoke("match_array", {
-      pattern: query,
-      paths: contactsName,
+    const newMatches = (await invoke("match_array", {
+      pattern: newQuery,
+      paths: contactNames,
     })) as string[];
-
-    setFilteredContacts(matches);
+    setMatches(newMatches);
   }
 
   return (
