@@ -78,7 +78,10 @@ export function SearchBar() {
         </DialogHeader>
         <DialogDescription>
           <p className="text-gray-400 text-sm">Recently viewed</p>
-          <ContactSuggestions contactsList={filteredContacts} />
+          <ContactSuggestions
+            contactsList={filteredContacts}
+            setOpen={setOpen}
+          />
         </DialogDescription>
       </DialogContent>
     </Dialog>
