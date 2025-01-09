@@ -64,7 +64,7 @@ export function SearchBar() {
       <DialogTrigger asChild>
         <Button className="mt-4">Find or start a conversation</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" hideCloseIcon>
         <DialogHeader>
           <div className="m-0">
             <input
