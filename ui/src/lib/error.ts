@@ -5,13 +5,13 @@ export async function toastError(error: CRChatCmdError) {
   let message = "Error: ";
   switch (error.chatError.type) {
     case "error":
-      message += error.chatError.errorType.type
+      message += error.chatError.errorType.type;
       break;
     case "errorAgent":
-      message += error.chatError.agentError.type
+      message += error.chatError.agentError.type;
       break;
     case "errorStore":
-      message += error.chatError.storeError.type
+      message += error.chatError.storeError.type;
       break;
   }
 
