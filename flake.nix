@@ -10,6 +10,10 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -18,6 +22,7 @@
       flake-utils,
       pre-commit-hooks,
       rust-overlay,
+      treefmt-nix,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -31,27 +36,9 @@
           config.allowUnfree = true;
         };
 
-        inherit (pkgs)
-          mkShell
-          rust-bin
-          stdenv
-          writeShellApplication
-          ;
+        inherit (pkgs) mkShell rust-bin stdenv;
 
         rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-
-        scripts.muchat-watch = writeShellApplication {
-          name = "muchat-watch";
-          runtimeInputs = with pkgs; [
-            cargo-nextest
-            cargo-watch
-            rust
-          ];
-          text = ''
-            exec cargo watch -s 'cargo fmt && cargo clippy --all && cargo nextest run'
-          '';
-        };
-
         rustfmt = stdenv.mkDerivation {
           name = "muchat-rustfmt";
           dontBuild = true;
@@ -63,32 +50,54 @@
           '';
         };
 
+        treefmt =
+          (treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "flake.nix";
+
+            settings = {
+              allow-missing-formatter = true;
+              verbose = 0;
+
+              global.excludes = [
+                "*.lock"
+                "*.md"
+                "LICENSE"
+                "pnpm-lock.yaml"
+              ];
+
+              formatter = {
+                nixfmt.options = [ "--strict" ];
+                rustfmt.package = rustfmt;
+                shfmt.options = [
+                  "--ln"
+                  "bash"
+                ];
+              };
+            };
+
+            programs = {
+              nixfmt.enable = true;
+              prettier.enable = true;
+              rustfmt.enable = true;
+              shfmt.enable = true;
+            };
+          }).config.build.wrapper;
+
         checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
 
           hooks = {
             deadnix.enable = true;
-
-            nixfmt-rfc-style = {
+            treefmt = {
               enable = true;
-              args = [ "--strict" ];
-            };
-
-            prettier = {
-              enable = true;
-
-              excludes = [
-                "Cargo.lock"
-                "flake.lock"
-                "pnpm-lock.yaml"
-              ];
+              package = treefmt;
             };
 
             rustfmt = {
               enable = true;
               packageOverrides = {
                 inherit rustfmt;
-                cargo = rust-bin.nightly.latest.default;
+                cargo = rustfmt;
               };
             };
           };
@@ -99,13 +108,14 @@
       {
         inherit checks packages;
 
+        formatter = treefmt;
+
         devShells.default = mkShell {
           inherit (checks.pre-commit-check) shellHook;
 
           name = "muchat";
 
           buildInputs = with pkgs; [
-            (attrValues scripts)
             (attrValues packages)
 
             rust
