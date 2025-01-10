@@ -15,6 +15,7 @@ tauri-build = { version = "2.0.3", features = [] }
 
 [dependencies]
 log = "0.4.22"
+nucleo = "0.5.0"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tauri = { version = "2.1.1", features = [] }
