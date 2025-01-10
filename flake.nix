@@ -61,8 +61,9 @@
               global.excludes = [
                 "*.lock"
                 "*.md"
+                "*.yaml"
                 "LICENSE"
-                "pnpm-lock.yaml"
+                "LICENSE-APACHE"
               ];
 
               formatter = {
