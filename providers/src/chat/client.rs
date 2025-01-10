@@ -9,10 +9,7 @@ use std::{
 use async_stream::try_stream;
 use futures::{
     stream::{SplitSink, SplitStream},
-    Future,
-    SinkExt,
-    Stream,
-    StreamExt,
+    Future, SinkExt, Stream, StreamExt,
 };
 use tokio::{
     net::TcpStream,

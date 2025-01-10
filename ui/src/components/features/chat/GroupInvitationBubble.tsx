@@ -17,18 +17,20 @@ export const GroupInvitationBubble: React.FC<GroupInvitationBubbleProps> = ({
   ...props
 }) => {
   const { client } = useChatContext();
-  const [isLoading, setLoading] = useState(false)
+  const [isLoading, setLoading] = useState(false);
 
   const acceptInvitation = useCallback(async () => {
     if (isLoading) return;
     setLoading(true);
-    const corrId = await client.current?.joinGroup(groupInvitation.localDisplayName);
+    const corrId = await client.current?.joinGroup(
+      groupInvitation.localDisplayName,
+    );
     if (!corrId) {
       setLoading(false);
       return toast("Error sending join request.");
     }
     const data = await client.current?.waitCommandResponse(corrId);
-    if (data?.type === 'chatCmdError') {
+    if (data?.type === "chatCmdError") {
       toastError(data);
     } else {
       toast(`Joined ${groupInvitation.localDisplayName}`);
