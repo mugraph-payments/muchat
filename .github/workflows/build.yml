@@ -10,12 +10,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: nightly
-          components: rustfmt
       - uses: actions/checkout@v4
-      - run: cargo fmt --all --check
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v1
+      - run: nix run .#treefmt -- --ci
 
   build:
     needs: check

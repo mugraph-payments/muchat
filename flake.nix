@@ -61,8 +61,9 @@
               global.excludes = [
                 "*.lock"
                 "*.md"
+                "*.yaml"
                 "LICENSE"
-                "pnpm-lock.yaml"
+                "LICENSE-APACHE"
               ];
 
               formatter = {
@@ -103,7 +104,11 @@
           };
         };
 
-        packages.simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
+        packages = {
+          inherit treefmt;
+
+          simplex-chat = pkgs.callPackage ./nix/simplex-chat.nix { };
+        };
       in
       {
         inherit checks packages;
