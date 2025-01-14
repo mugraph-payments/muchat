@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import classes from "@/components/features/chat/MessageInput/MessageInput.module.css";
 import { Button } from "@/components/ui/Button";
 import { commands as commandList } from "@/lib/command";
@@ -24,6 +24,21 @@ const MessageInput: React.FC<MessageInputProps> = (props) => {
   const [focusedSuggestionIndex, setFocusedSuggestionIndex] = useState(-1);
   const [history, setHistory] = useState<Array<string>>([]);
   const [, setHistoryIndex] = useState(-1);
+
+  const handleDismiss = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape" && commandAutoCompleteEnabled) {
+        setCommandAutoCompleteEnabled(false);
+        inputRef.current?.focus();
+      }
+    },
+    [commandAutoCompleteEnabled],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleDismiss);
+    return () => window.removeEventListener("keydown", handleDismiss);
+  }, [handleDismiss]);
 
   const handleKeyPress: React.KeyboardEventHandler<HTMLInputElement> = (
     event,
